@@ -83,6 +83,7 @@ namespace GJKEPADemo
             if (result.LengthSquared() > 1e-12) result.Normalize();
             result *= 0.5d;
         }
+
         public static void SupportSphere(ref JVector direction, out JVector result)
         {
             result = direction;
@@ -192,5 +193,4 @@ namespace GJKEPADemo
         }
 
     }
-
 }
