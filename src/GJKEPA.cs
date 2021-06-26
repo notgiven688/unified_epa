@@ -534,7 +534,6 @@ namespace GJKEPADemo
                 if (n2Lit) ExpandHorizon(tri.N2, w);
                 if (n3Lit) ExpandHorizon(tri.N3, w);
             }
-
         }
 
         [ThreadStatic]
@@ -558,7 +557,5 @@ namespace GJKEPADemo
 
             return success;
         }
-
     }
-
 }
