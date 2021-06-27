@@ -155,28 +155,28 @@ namespace GJKEPADemo
                 else Head = triangle;
             }
 
-            public void CalcPoint(int triangle, ref JVector barycentric, out JVector result)
+            private void CalcPoint(int triangle, ref JVector barycentric, out JVector result)
             {
                 ref Triangle t = ref Triangles[triangle];
                 JMatrix m = new JMatrix(ref Vertices[t.A], ref Vertices[t.B], ref Vertices[t.C]);
                 JVector.Transform(ref barycentric, ref m, out result);
             }
 
-            public void CalcPointA(int triangle, ref JVector barycentric, out JVector result)
+            private void CalcPointA(int triangle, ref JVector barycentric, out JVector result)
             {
                 ref Triangle t = ref Triangles[triangle];
                 JMatrix m = new JMatrix(ref VerticesA[t.A], ref VerticesA[t.B], ref VerticesA[t.C]);
                 JVector.Transform(ref barycentric, ref m, out result);
             }
 
-            public void CalcPointB(int triangle, ref JVector barycentric, out JVector result)
+            private void CalcPointB(int triangle, ref JVector barycentric, out JVector result)
             {
                 ref Triangle t = ref Triangles[triangle];
                 JMatrix m = new JMatrix(ref VerticesB[t.A], ref VerticesB[t.B], ref VerticesB[t.C]);
                 JVector.Transform(ref barycentric, ref m, out result);
             }
 
-            public void CalcBarycentric(int triangle, bool project, out JVector result)
+            private void CalcBarycentric(int triangle, bool project, out JVector result)
             {
                 Triangle tri = Triangles[triangle];
                 JVector a = Vertices[tri.A];
@@ -265,7 +265,7 @@ namespace GJKEPADemo
                 result.X = alpha; result.Y = beta; result.Z = gamma;
             }
 
-            public int CreateTriangle(int a, int b, int c)
+            private int CreateTriangle(int a, int b, int c)
             {
                 ref Triangle triangle = ref Triangles[tPointer];
                 triangle.A = a; triangle.B = b; triangle.C = c;
@@ -303,7 +303,7 @@ namespace GJKEPADemo
             JVector v2 = scale * new JVector(-Math.Sqrt(2.0d / 9.0d), -Math.Sqrt(2.0d / 3.0d), -1.0d / 3.0d);
             JVector v3 = scale * new JVector(0.0d, 0.0d, 1.0d);
 
-            public void ConstructInitialTetrahedron(JVector position)
+            private void ConstructInitialTetrahedron(JVector position)
             {
                 vPointer = 3;
 
