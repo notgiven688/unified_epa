@@ -1,6 +1,6 @@
 # Unified GJK/EPA Demo 
 
-Robust and simple implementation of the **Gilbert–Johnson–Keerthi** (GJK) distance and the **Expanding Polytope Algorithm** (EPA).
+Robust and simple implementation of the **Gilbert-Johnson-Keerthi** (GJK) distance and the **Expanding Polytope Algorithm** (EPA).
 
 The demo is written in C#, with [OpenTK](https://github.com/opentk/opentk) as only dependency.
 
