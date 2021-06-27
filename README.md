@@ -10,7 +10,7 @@ The implementation itself is contained in [GJKEPA.cs](src/GJKEPA.cs) with ~500 l
 
 In contrast to other available implementations we only work with a convex hull with finite volume. The algorithm relies solely on point-triangle distances.
 
-Details of the implementation will be written up in a separate document.
+Details of the algorithm are summarized in [notes.pdf](notes.pdf).
 
 ## Run the demo
 
