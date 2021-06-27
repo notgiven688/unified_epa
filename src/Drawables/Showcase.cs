@@ -181,6 +181,8 @@ namespace GJKEPADemo
             PrimitiveRight.Position = new Vector3(-distance / 2.0f, 0.3f, 0.1f);
         }
 
+        int tcounter = 0;
+
         public void Update(FrameEventArgs e)
         {
             Vector3 deltaAngle = new Vector3(0.006f, 0.007f, 0.008f);
@@ -193,6 +195,13 @@ namespace GJKEPADemo
                 (PrimitiveLeft as ImplicitShape).Angles += deltaAngle;
                 (PrimitiveRight as ImplicitShape).Angles -= deltaAngle;
                 advancerotation = false;
+            }
+
+            tcounter++;
+
+            if(tcounter % 600 == 0)
+            {
+                NextRandomShapes();
             }
 
             HandleInput();

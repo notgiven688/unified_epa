@@ -20,7 +20,8 @@
 * 
 */
 using System;
-
+using System.Drawing;
+using System.Drawing.Imaging;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -58,6 +59,9 @@ namespace GJKEPADemo
 
         protected override void OnUpdateFrame(FrameEventArgs e) { base.OnUpdateFrame(e); showcase.Update(e); }
 
+        int counter = 0;
+        bool f2pressed = false;
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
@@ -69,7 +73,29 @@ namespace GJKEPADemo
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             showcase.Draw(e);
+
+            if(showcase.KeyState.IsKeyDown(OpenTK.Windowing.GraphicsLibraryFramework.Keys.F2) || f2pressed)
+            {
+                TakeScreenshot($"./video/{(counter++).ToString("D5")}.png");
+                f2pressed = true;
+            }
+
             SwapBuffers();
+        }
+
+        private void TakeScreenshot(string filename)
+        {
+            int w = this.Size.X;
+            int h = this.Size.Y;
+            Bitmap bmp = new Bitmap(w, h);
+            Rectangle rect = new Rectangle(0,0,w,h);
+            System.Drawing.Imaging.BitmapData data =
+                bmp.LockBits(rect, System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, w, h, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            bmp.Save(filename, ImageFormat.Png);
         }
     }
 

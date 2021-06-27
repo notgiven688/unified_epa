@@ -44,7 +44,7 @@ namespace GJKEPADemo
 
         public string Text { set; get; }
 
-        public const int FontSize = 10;
+        public const int FontSize = 16;
 
         private float pxWidth = 0, pxHeight = 0;
         private int numCharsH = 0, numCharsV = 0;
