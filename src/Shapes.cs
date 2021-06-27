@@ -130,7 +130,7 @@ namespace GJKEPADemo
         }
     }
 
-    [Shape("LineShape")]
+    [Shape("Line Segment")]
     public class LineShape : ISupportMappable
     {
         public void SupportMapping(ref JVector direction, out JVector result)
