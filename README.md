@@ -23,4 +23,6 @@ The demo should be able to run cross-platform utilizing OpenGL.
 
 ## Screenshots
 
+[YouTube Video](https://www.youtube.com/watch?v=NMdp7A13EAI)
+
 ![alt text](screenshots/gjkepa.png?raw=true)
