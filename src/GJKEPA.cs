@@ -379,10 +379,9 @@ namespace GJKEPADemo
 
                     if (deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[closest].ClosestToOriginSq)
                     {
-                        this.Statistics.Accuracy = Math.Abs(deltaDist);
-
                         ref Triangle s = ref Triangles[closest];
                         separation = Math.Sqrt(s.ClosestToOriginSq);
+                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
                         if (OriginEnclosed) separation *= -1;
                         CalcBarycentric(closest, out JVector bc);
                         CalcPointA(closest, ref bc, out point1);
