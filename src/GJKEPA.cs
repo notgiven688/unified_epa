@@ -87,10 +87,12 @@ namespace GJKEPADemo
                 public int Prev, Next;
 
                 public bool Visited;
-                public double SqDistance;
+                
+                public JVector Normal;
+                public JVector ClosestToOrigin;
 
-                public JVector Normal, NNormal;
-                public JVector SearchDirection;
+                public double NormalSq;
+                public double ClosestToOriginSq;
 
                 public void SetNeighbors(int n1, int n2, int n3)
                 {
@@ -138,7 +140,7 @@ namespace GJKEPADemo
                 {
                     current = next;
 
-                    if (Triangles[triangle].SqDistance < Triangles[current].SqDistance)
+                    if (Triangles[triangle].ClosestToOriginSq < Triangles[current].ClosestToOriginSq)
                     {
                         int prev = Triangles[current].Prev;
                         Triangles[triangle].Next = current;
@@ -176,7 +178,7 @@ namespace GJKEPADemo
                 JVector.Transform(ref barycentric, ref m, out result);
             }
 
-            public void CalcBarycentric(int triangle, bool project, out JVector result)
+            public void CalcBarycentric(int triangle, out JVector result)
             {
                 Triangle tri = Triangles[triangle];
                 JVector a = Vertices[tri.A];
@@ -192,15 +194,16 @@ namespace GJKEPADemo
                 JVector.Subtract(ref a, ref b, out u);
                 JVector.Subtract(ref a, ref c, out v);
 
-                double t = tri.Normal.LengthSquared();
+                double t = tri.NormalSq;
                 JVector.Cross(ref u, ref a, out tmp);
                 double gamma = JVector.Dot(ref tmp, ref tri.Normal) / t;
                 JVector.Cross(ref a, ref v, out tmp);
                 double beta = JVector.Dot(ref tmp, ref tri.Normal) / t;
                 double alpha = 1.0d - gamma - beta;
 
-                if (project)
+                if (OriginEnclosed)
                 {
+                    // early out possible, if origin is enclosed
                     result.X = alpha; result.Y = beta; result.Z = gamma;
                     return;
                 }
@@ -274,23 +277,13 @@ namespace GJKEPADemo
                 JVector u, v;
                 JVector.Subtract(ref Vertices[a], ref Vertices[b], out u);
                 JVector.Subtract(ref Vertices[a], ref Vertices[c], out v);
-
                 JVector.Cross(ref u, ref v, out triangle.Normal);
-                JVector.Normalize(ref triangle.Normal, out triangle.NNormal);
+                triangle.NormalSq = triangle.Normal.LengthSquared();
 
-                if (OriginEnclosed)
-                {
-                    triangle.SearchDirection = triangle.NNormal;
-                    triangle.SqDistance = JVector.Dot(ref Vertices[a], ref triangle.NNormal);
-                    triangle.SqDistance *= triangle.SqDistance;
-                }
-                else
-                {
-                    CalcBarycentric(tPointer, false, out JVector bc);
-                    CalcPoint(tPointer, ref bc, out triangle.SearchDirection);
-                    triangle.SqDistance = triangle.SearchDirection.LengthSquared();
-                }
-
+                CalcBarycentric(tPointer, out JVector bc);
+                CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
+                triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+                
                 triangle.Visited = false;
                 SortInTriangle(tPointer);
 
@@ -338,17 +331,16 @@ namespace GJKEPADemo
                 point1 = point2 = JVector.Zero;
                 separation = 0.0d;
 
-                double distToOriginSq = 0;
-                int counter = 0;
+                int iter = 0;
 
                 MKD.SupportCenter(out JVector center);
                 ConstructInitialTetrahedron(center);
 
-                while (++counter < MaxIter)
+                while (++iter < MaxIter)
                 {
-                    this.Statistics.Iterations = counter;
+                    this.Statistics.Iterations = iter;
 
-                    JVector v = Triangles[Head].SearchDirection;
+                    JVector v = Triangles[Head].ClosestToOrigin;
 
                     if (OriginEnclosed) v.Negate();
 
@@ -374,24 +366,28 @@ namespace GJKEPADemo
                         return false;
                     }
 
-                    if (OriginEnclosed)
+                    // Termination condition for GJK and EPA
+                    //     c = Triangles[closest].ClosestToOrigin (closest point on the polytope)
+                    //     v = Vertices[vPointer] (support point)
+                    //     e = CollideEpsilon
+                    // The termination condition reads: 
+                    //     abs(dot(normalize(c), v - c)) < e
+                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
+                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
+
+                    double deltaDist = Triangles[closest].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[closest].ClosestToOrigin);
+
+                    if (deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[closest].ClosestToOriginSq)
                     {
-                        // EPA termination condition: The closest face of the polytope
-                        // can not be extended further than CollideEpsilon.
+                        this.Statistics.Accuracy = Math.Abs(deltaDist);
 
-                        JVector.Subtract(ref Vertices[vPointer], ref Vertices[Triangles[closest].A], out JVector delta);
-                        double deltaDist = Math.Abs(JVector.Dot(ref Triangles[closest].NNormal, ref delta));
-
-                        if (deltaDist < CollideEpsilon)
-                        {
-                            this.Statistics.Accuracy = deltaDist;
-                            ref Triangle s = ref Triangles[closest];
-                            separation = -Math.Sqrt(s.SqDistance);
-                            CalcBarycentric(closest, true, out JVector bc);
-                            CalcPointA(closest, ref bc, out point1);
-                            CalcPointB(closest, ref bc, out point2);
-                            return true;
-                        }
+                        ref Triangle s = ref Triangles[closest];
+                        separation = Math.Sqrt(s.ClosestToOriginSq);
+                        if (OriginEnclosed) separation *= -1;
+                        CalcBarycentric(closest, out JVector bc);
+                        CalcPointA(closest, ref bc, out point1);
+                        CalcPointB(closest, ref bc, out point2);
+                        return true;
                     }
 
                     ExpandHorizon(closest, vPointer);
@@ -403,7 +399,7 @@ namespace GJKEPADemo
                         for (; i < ntPointer; i++)
                         {
                             ref Triangle t = ref Triangles[newTriangles[i]];
-                            double dd = JVector.Dot(ref t.NNormal, ref Vertices[t.A]);
+                            double dd = JVector.Dot(ref t.Normal, ref Vertices[t.A]);
                             if (dd < 0.0d) break;
                         }
                         OriginEnclosed = (i == ntPointer);
@@ -443,28 +439,6 @@ namespace GJKEPADemo
 
                     Triangles[firstIndex].SetN1(lastIndex);
                     Triangles[lastIndex].SetN3(firstIndex);
-
-                    if (!OriginEnclosed)
-                    {
-                        // GJK termination condition: Successive results for the closest 
-                        // distance of the polytope and the origin fall under the threeshold
-                        // of CollideEpsilon.
-
-                        double x = Triangles[Head].SqDistance - distToOriginSq;
-                        distToOriginSq = Triangles[Head].SqDistance;
-                        double dd2 = (x * x) / (4.0d * distToOriginSq);
-
-                        if (dd2 < CollideEpsilon * CollideEpsilon)
-                        {
-                            this.Statistics.Accuracy = Math.Sqrt(dd2);
-                            ref Triangle s = ref Triangles[Head];
-                            separation = Math.Sqrt(s.SqDistance);
-                            CalcBarycentric(Head, false, out JVector bc);
-                            CalcPointA(Head, ref bc, out point1);
-                            CalcPointB(Head, ref bc, out point2);
-                            return true;
-                        }
-                    }
                 }
 
                 Diagnostics.Debug.WriteLine(
@@ -477,7 +451,8 @@ namespace GJKEPADemo
             {
                 ref Triangle tr = ref Triangles[candidate];
                 JVector.Subtract(ref Vertices[w], ref Vertices[tr.A], out JVector deltaA);
-                return (JVector.Dot(ref deltaA, ref tr.NNormal) > -NumericEpsilon);
+                double ddot = JVector.Dot(ref deltaA, ref tr.Normal);
+                return Math.Sign(ddot) * ddot * ddot > -NumericEpsilon * NumericEpsilon * tr.NormalSq;
             }
 
             private void ExpandHorizon(int candidate, int w)
@@ -534,7 +509,6 @@ namespace GJKEPADemo
                 if (n2Lit) ExpandHorizon(tri.N2, w);
                 if (n3Lit) ExpandHorizon(tri.N3, w);
             }
-
         }
 
         [ThreadStatic]
@@ -558,7 +532,5 @@ namespace GJKEPADemo
 
             return success;
         }
-
     }
-
 }
