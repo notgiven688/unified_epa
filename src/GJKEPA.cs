@@ -28,8 +28,6 @@ namespace GJKEPADemo
     public sealed class GJKEPA
     {
         private const double CollideEpsilon = 1e-6d;
-        private const double NumericEpsilon = 1e-12d;
-        
         private const int MaxIter = 85;
 
         public struct Statistics { public double Accuracy; public int Iterations; }
@@ -318,8 +316,7 @@ namespace GJKEPADemo
 
             public bool Solve(out JVector point1, out JVector point2, out double separation)
             {
-                tPointer = 0;
-                vPointer = 0;
+                tPointer = vPointer = ntPointer = 0;
                 OriginEnclosed = false;
                 Head = -1;
 
@@ -341,6 +338,33 @@ namespace GJKEPADemo
                     vPointer++;
                     MKD.Support(ref searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
 
+                    // Termination condition for GJK and EPA
+                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
+                    //     v = Vertices[vPointer] (support point)
+                    //     e = CollideEpsilon
+                    // The termination condition reads: 
+                    //     abs(dot(normalize(c), v - c)) < e
+                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
+                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
+
+                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[Head].ClosestToOrigin);
+
+                    if (deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq)
+                    {
+                        ref Triangle s = ref Triangles[Head];
+                        separation = Math.Sqrt(s.ClosestToOriginSq);
+                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
+                        if (OriginEnclosed) separation *= -1;
+                        CalcBarycentric(Head, out JVector bc);
+                        CalcPointA(Head, ref bc, out point1);
+                        CalcPointB(Head, ref bc, out point2);
+                        return true;
+                    }
+
+                    // Search for a triangle on the existing polytope which is "lighted" by the new support point.
+                    // The (double-linked) list of triangles is sorted by their distance to the origin. This allows
+                    // for an efficient search.
+
                     int closest = -1;
 
                     for (int node = Head; node != -1; node = Triangles[node].Next)
@@ -360,28 +384,9 @@ namespace GJKEPADemo
                         return false;
                     }
 
-                    // Termination condition for GJK and EPA
-                    //     c = Triangles[closest].ClosestToOrigin (closest point on the polytope)
-                    //     v = Vertices[vPointer] (support point)
-                    //     e = CollideEpsilon
-                    // The termination condition reads: 
-                    //     abs(dot(normalize(c), v - c)) < e
-                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
-                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
-
-                    double deltaDist = Triangles[closest].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[closest].ClosestToOrigin);
-
-                    if (deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[closest].ClosestToOriginSq)
-                    {
-                        ref Triangle s = ref Triangles[closest];
-                        separation = Math.Sqrt(s.ClosestToOriginSq);
-                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
-                        if (OriginEnclosed) separation *= -1;
-                        CalcBarycentric(closest, out JVector bc);
-                        CalcPointA(closest, ref bc, out point1);
-                        CalcPointB(closest, ref bc, out point2);
-                        return true;
-                    }
+                    // Adjacent triangles are searched (flood-fill algorithm) to determine all lighted triangles
+                    // which then get removed. The hole in the polytope is filled using new triangles connecting 
+                    // the "horizon" and the new support point. Indices of neighboring triangles have to be updated.
 
                     ExpandHorizon(closest, vPointer);
                     System.Diagnostics.Debug.Assert(ntPointer > 0);
@@ -444,8 +449,7 @@ namespace GJKEPADemo
             {
                 ref Triangle tr = ref Triangles[candidate];
                 JVector.Subtract(ref Vertices[w], ref Vertices[tr.A], out JVector deltaA);
-                double ddot = JVector.Dot(ref deltaA, ref tr.Normal);
-                return Math.Sign(ddot) * ddot * ddot > -NumericEpsilon * NumericEpsilon * tr.NormalSq;
+                return JVector.Dot(ref deltaA, ref tr.Normal) > 0;
             }
 
             private void ExpandHorizon(int candidate, int w)

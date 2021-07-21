@@ -75,7 +75,7 @@ namespace GJKEPADemo
             AllShapes = new List<Type>(ShapeAttribute.GetAllTypes());
 
             PrimitiveLeft = new ImplicitShape(new CubeShape());
-            PrimitiveRight = new ImplicitShape(new LineShape());
+            PrimitiveRight = new ImplicitShape(new CubeShape());
 
             this.drawableComponents.Add(PrimitiveLeft);
             this.drawableComponents.Add(PrimitiveRight);
