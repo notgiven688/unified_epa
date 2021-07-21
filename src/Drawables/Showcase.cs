@@ -125,7 +125,7 @@ namespace GJKEPADemo
             Overlay.Text += "+ Controls\n\n";
             Overlay.Text += "  change shape distance       (k,l)\n";
             Overlay.Text += "  move the camera             (w,a,s,d,mouse)\n";
-            Overlay.Text += "  toggle continuous rotation   (r)\n";
+            Overlay.Text += "  toggle continuous rotation  (r)\n";
             Overlay.Text += "  rotate single step          (t)\n";
             Overlay.Text += "  switch pair of shapes       (n)\n";
             Overlay.Text += "  exit                        (esc)\n\n";
