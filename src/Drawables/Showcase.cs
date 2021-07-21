@@ -74,8 +74,8 @@ namespace GJKEPADemo
 
             AllShapes = new List<Type>(ShapeAttribute.GetAllTypes());
 
-            PrimitiveLeft = new ImplicitShape(new SphereShape());
-            PrimitiveRight = new ImplicitShape(new ConeShape());
+            PrimitiveLeft = new ImplicitShape(new CubeShape());
+            PrimitiveRight = new ImplicitShape(new LineShape());
 
             this.drawableComponents.Add(PrimitiveLeft);
             this.drawableComponents.Add(PrimitiveRight);
@@ -125,7 +125,7 @@ namespace GJKEPADemo
             Overlay.Text += "+ Controls\n\n";
             Overlay.Text += "  change shape distance       (k,l)\n";
             Overlay.Text += "  move the camera             (w,a,s,d,mouse)\n";
-            Overlay.Text += "  toggle continous rotation   (r)\n";
+            Overlay.Text += "  toggle continuous rotation   (r)\n";
             Overlay.Text += "  rotate single step          (t)\n";
             Overlay.Text += "  switch pair of shapes       (n)\n";
             Overlay.Text += "  exit                        (esc)\n\n";
