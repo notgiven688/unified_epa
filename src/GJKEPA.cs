@@ -180,7 +180,7 @@ namespace GJKEPADemo
 
             public void CalcBarycentric(int triangle, out JVector result)
             {
-                Triangle tri = Triangles[triangle];
+                ref Triangle tri = ref Triangles[triangle];
                 JVector a = Vertices[tri.A];
                 JVector b = Vertices[tri.B];
                 JVector c = Vertices[tri.C];
@@ -236,13 +236,13 @@ namespace GJKEPADemo
                     t = JVector.Dot(ref b, ref w);
                     if ((alpha < 0.0d) && (t > 0.0d))
                     {
-                        gamma = Math.Min(1, t / w.LengthSquared());
+                        gamma = Math.Min(1.0d, t / w.LengthSquared());
                         beta = 1.0d - gamma;
                         alpha = 0.0d;
                     }
                     else
                     {
-                        alpha = Math.Min(1, Math.Max(0.0d, -JVector.Dot(ref b, ref u) / u.LengthSquared()));
+                        alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(ref b, ref u) / u.LengthSquared()));
                         beta = 1.0d - alpha;
                         gamma = 0.0d;
                     }
@@ -251,15 +251,15 @@ namespace GJKEPADemo
                 {
                     JVector.Subtract(ref b, ref c, out w);
                     t = -JVector.Dot(ref c, ref v);
-                    if ((beta < 0) && (t > 0.0d))
+                    if ((beta < 0.0d) && (t > 0.0d))
                     {
-                        alpha = Math.Min(1, t / v.LengthSquared());
+                        alpha = Math.Min(1.0d, t / v.LengthSquared());
                         gamma = 1.0d - alpha;
                         beta = 0.0d;
                     }
                     else
                     {
-                        beta = Math.Min(1, Math.Max(0, -JVector.Dot(ref c, ref w) / w.LengthSquared()));
+                        beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(ref c, ref w) / w.LengthSquared()));
                         gamma = 1.0d - beta;
                         alpha = 0.0d;
                     }
@@ -300,15 +300,10 @@ namespace GJKEPADemo
             {
                 vPointer = 3;
 
-                Vertices[0] = v0;
-                Vertices[1] = v1;
-                Vertices[2] = v2;
-                Vertices[3] = v3;
-
-                JVector.Add(ref Vertices[0], ref position, out Vertices[0]);
-                JVector.Add(ref Vertices[1], ref position, out Vertices[1]);
-                JVector.Add(ref Vertices[2], ref position, out Vertices[2]);
-                JVector.Add(ref Vertices[3], ref position, out Vertices[3]);
+                JVector.Add(ref v0, ref position, out Vertices[0]);
+                JVector.Add(ref v1, ref position, out Vertices[1]);
+                JVector.Add(ref v2, ref position, out Vertices[2]);
+                JVector.Add(ref v3, ref position, out Vertices[3]);
 
                 int t1 = CreateTriangle(0, 2, 1);
                 int t2 = CreateTriangle(0, 1, 3);
@@ -340,12 +335,11 @@ namespace GJKEPADemo
                 {
                     this.Statistics.Iterations = iter;
 
-                    JVector v = Triangles[Head].ClosestToOrigin;
-
-                    if (OriginEnclosed) v.Negate();
+                    JVector searchDir = Triangles[Head].ClosestToOrigin;
+                    if (OriginEnclosed) searchDir.Negate();
 
                     vPointer++;
-                    MKD.Support(ref v, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
+                    MKD.Support(ref searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
 
                     int closest = -1;
 
