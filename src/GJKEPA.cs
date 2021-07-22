@@ -351,8 +351,7 @@ namespace GJKEPADemo
 
                     if (deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq)
                     {
-                        ref Triangle s = ref Triangles[Head];
-                        separation = Math.Sqrt(s.ClosestToOriginSq);
+                        separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
                         this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
                         if (OriginEnclosed) separation *= -1;
                         CalcBarycentric(Head, out JVector bc);
@@ -365,18 +364,18 @@ namespace GJKEPADemo
                     // The (double-linked) list of triangles is sorted by their distance to the origin. This allows
                     // for an efficient search.
 
-                    int closest = -1;
+                    int ltri = -1;
 
                     for (int node = Head; node != -1; node = Triangles[node].Next)
                     {
                         if (IsLit(node, vPointer))
                         {
-                            closest = node;
+                            ltri = node;
                             break;
                         }
                     }
 
-                    if (closest == -1)
+                    if (ltri == -1)
                     {
                         System.Diagnostics.Debug.WriteLine(
                             "exit reason 1 - new point not clearly outside polytope.");
@@ -388,7 +387,7 @@ namespace GJKEPADemo
                     // which then get removed. The hole in the polytope is filled using new triangles connecting 
                     // the "horizon" and the new support point. Indices of neighboring triangles have to be updated.
 
-                    ExpandHorizon(closest, vPointer);
+                    ExpandHorizon(ltri, vPointer);
                     System.Diagnostics.Debug.Assert(ntPointer > 0);
 
                     if (!OriginEnclosed)
