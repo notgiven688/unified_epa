@@ -510,21 +510,21 @@ namespace GJKEPADemo
         [ThreadStatic]
         public static GJKEPASolver epaSolver;
 
-        public static bool Detect(ISupportMappable support1, ISupportMappable support2,
-         ref JMatrix orientation1, ref JMatrix orientation2,
-         ref JVector position1, ref JVector position2,
-         out JVector point1, out JVector point2, out double separation)
+        public static bool Detect(ISupportMappable supportA, ISupportMappable supportB,
+         ref JMatrix orientationA, ref JMatrix orientationB,
+         ref JVector positionA, ref JVector positionB,
+         out JVector pointA, out JVector pointB, out double separation)
         {
             if (epaSolver == null) epaSolver = new GJKEPASolver();
 
-            epaSolver.MKD.SupportA = support1;
-            epaSolver.MKD.SupportB = support2;
-            epaSolver.MKD.OrientationA = orientation1;
-            epaSolver.MKD.OrientationB = orientation2;
-            epaSolver.MKD.PositionA = position1;
-            epaSolver.MKD.PositionB = position2;
+            epaSolver.MKD.SupportA = supportA;
+            epaSolver.MKD.SupportB = supportB;
+            epaSolver.MKD.OrientationA = orientationA;
+            epaSolver.MKD.OrientationB = orientationB;
+            epaSolver.MKD.PositionA = positionA;
+            epaSolver.MKD.PositionB = positionB;
 
-            bool success = epaSolver.Solve(out point1, out point2, out separation);
+            bool success = epaSolver.Solve(out pointA, out pointB, out separation);
 
             return success;
         }
