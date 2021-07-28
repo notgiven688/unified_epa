@@ -75,31 +75,61 @@ namespace GJKEPADemo
 
     static class Program
     {
-        static void Stress()
+        static void Stress(int i)
         {
             var s1 = new CubeShape();
             var s2 = new SphereShape();
 
-            JMatrix rot1 = JMatrix.CreateRotationX(0.3d);
-            JMatrix rot2 = JMatrix.CreateRotationX(0.2d);
+            JMatrix rot1 = JMatrix.CreateRotationX((double)i);
+            JMatrix rot2 = JMatrix.CreateRotationX(-0.7*(double)i);
 
             JVector pos1 = new JVector(0.1f, 0.1f, 0.2f);
             JVector pos2 = new JVector(0.8f, 0.3f, 0.4f);
 
             JVector p1, p2;
-            double penetration;
+            double separation;
 
             GJKEPA.Detect(s1, s2, ref rot1, ref rot2, ref pos1, ref pos2,
-            out p1, out p2, out penetration);
+            out p1, out p2, out separation);
         }
+
+        static void SphereSphere(int i)
+        {
+            var s1 = new SphereShape();
+            var s2 = new SphereShape();
+
+            JMatrix rot1 = JMatrix.CreateRotationX((double)i);
+            JMatrix rot2 = JMatrix.CreateRotationY(-(double)i);
+
+            JVector pos1 = new JVector(0.1f+(double)i/1e6d, 0.1f, 0.2f);
+            JVector pos2 = new JVector(0.8f, 0.3f, 0.4f);
+
+            JVector p1, p2;
+            double separation;
+
+            GJKEPA.Detect(s1, s2, ref rot1, ref rot2, ref pos1, ref pos2,
+            out p1, out p2, out separation);
+
+            double analyticalDistance = (pos2-pos1).Length() - 1.0d;
+
+            if(Math.Abs(analyticalDistance - separation) > 1e-5d)
+                throw new Exception("Sphere/Sphere distance does not match analytical result.");
+        }
+
 
         [STAThread]
         static void Main()
         {
 #if TEST
+            #pragma warning disable CS0162
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            for(int i = 0;i<100000;i++) Stress();
-            Console.WriteLine(sw.ElapsedMilliseconds);
+            for(int i = 0;i<100000;i++) Stress(i);
+            Console.WriteLine($"Cube/Sphere stress test took {sw.ElapsedMilliseconds} ms.");
+
+            sw = System.Diagnostics.Stopwatch.StartNew();
+            for(int i = 0;i<100000;i++) SphereSphere(i);
+            Console.WriteLine($"Sphere/Sphere accuracy test took {sw.ElapsedMilliseconds} ms.");
+
             return;
 #endif
 
