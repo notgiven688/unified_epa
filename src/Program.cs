@@ -96,10 +96,12 @@ namespace GJKEPADemo
         [STAThread]
         static void Main()
         {
-            /*var sw = System.Diagnostics.Stopwatch.StartNew();
-            for(int i = 0;i<1000000;i++) Stress();
+#if TEST
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            for(int i = 0;i<100000;i++) Stress();
             Console.WriteLine(sw.ElapsedMilliseconds);
-            return;*/
+            return;
+#endif
 
             GameWindowSettings gws = GameWindowSettings.Default;
             NativeWindowSettings nws = NativeWindowSettings.Default;
