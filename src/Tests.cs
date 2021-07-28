@@ -27,9 +27,9 @@ namespace GJKEPADemo
     {
         public static void RunTests()
         {
-            RunTest("cube/sphere stress", () => { for(int i = 1;i<100000;i++) CubeSphere(i); } );
-            RunTest("sphere/sphere analytical check", () => { for(int i = 1;i<10000;i++) SphereSphere(i); } );
-            RunTest("cube/cube analytical check", () => { for(int i = 1;i<100000;i++) CubeCube(i); } );
+            RunTest("cube/sphere stress", () => { for (int i = 1; i < 100000; i++) CubeSphere(i); });
+            RunTest("sphere/sphere analytical check", () => { for (int i = 1; i < 10000; i++) SphereSphere(i); });
+            RunTest("cube/cube analytical check", () => { for (int i = 1; i < 100000; i++) CubeCube(i); });
         }
 
         public static void RunTest(string desc, Action test)
@@ -49,8 +49,8 @@ namespace GJKEPADemo
             JMatrix rot1 = JMatrix.Identity;
             JMatrix rot2 = JMatrix.Identity;
 
-            JVector pos1 = new JVector(1.0d+(double)i/10.0d, 0.1d, 0.0d);
-            JVector pos2 = new JVector(-(double)i/10.0d, 0.0d, 0.0d);
+            JVector pos1 = new JVector(1.0d + (double)i / 10.0d, 0.1d, 0.0d);
+            JVector pos2 = new JVector(-(double)i / 10.0d, 0.0d, 0.0d);
 
             JVector p1, p2;
             double separation;
@@ -58,9 +58,9 @@ namespace GJKEPADemo
             GJKEPA.Detect(s1, s2, ref rot1, ref rot2, ref pos1, ref pos2,
             out p1, out p2, out separation);
 
-            double analyticalDistance = 2.0d * (double)i/10.0d;
+            double analyticalDistance = 2.0d * (double)i / 10.0d;
 
-            if(Math.Abs(analyticalDistance - separation) > 1e-5d)
+            if (Math.Abs(analyticalDistance - separation) > 1e-5d)
                 throw new Exception("Distance does not match analytical result.");
         }
 
@@ -70,7 +70,7 @@ namespace GJKEPADemo
             var s2 = new SphereShape();
 
             JMatrix rot1 = JMatrix.CreateRotationX((double)i);
-            JMatrix rot2 = JMatrix.CreateRotationX(-0.7d*(double)i);
+            JMatrix rot2 = JMatrix.CreateRotationX(-0.7d * (double)i);
 
             JVector pos1 = new JVector(0.1d, 0.1d, 0.2d);
             JVector pos2 = new JVector(0.8d, 0.3d, 0.4d);
@@ -90,7 +90,7 @@ namespace GJKEPADemo
             JMatrix rot1 = JMatrix.CreateRotationX((double)i);
             JMatrix rot2 = JMatrix.CreateRotationY(-(double)i);
 
-            JVector pos1 = new JVector(0.1d+(double)i/1e5d, 0.1d, 0.2d);
+            JVector pos1 = new JVector(0.1d + (double)i / 1e5d, 0.1d, 0.2d);
             JVector pos2 = new JVector(0.8d, 0.3d, 0.4d);
 
             JVector p1, p2;
@@ -99,9 +99,9 @@ namespace GJKEPADemo
             GJKEPA.Detect(s1, s2, ref rot1, ref rot2, ref pos1, ref pos2,
             out p1, out p2, out separation);
 
-            double analyticalDistance = (pos2-pos1).Length() - 1.0d;
+            double analyticalDistance = (pos2 - pos1).Length() - 1.0d;
 
-            if(Math.Abs(analyticalDistance - separation) > 1e-5d)
+            if (Math.Abs(analyticalDistance - separation) > 1e-5d)
                 throw new Exception("Distance does not match analytical result.");
         }
     }
