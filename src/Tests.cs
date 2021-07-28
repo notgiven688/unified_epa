@@ -58,7 +58,7 @@ namespace GJKEPADemo
             GJKEPA.Detect(s1, s2, ref rot1, ref rot2, ref pos1, ref pos2,
             out p1, out p2, out separation);
 
-            double analyticalDistance = 2.0d * (double)i/10;
+            double analyticalDistance = 2.0d * (double)i/10.0d;
 
             if(Math.Abs(analyticalDistance - separation) > 1e-5d)
                 throw new Exception("Distance does not match analytical result.");
