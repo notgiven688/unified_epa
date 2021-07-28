@@ -27,8 +27,9 @@ namespace GJKEPADemo
     {
         public static void RunTests()
         {
-            RunTest("cube/sphere stress", () => { for(int i = 0;i<100000;i++) CubeSphere(i); } );
-            RunTest("sphere/sphere analytical check", () => { for(int i = 0;i<10000;i++) SphereSphere(i); } );
+            RunTest("cube/sphere stress", () => { for(int i = 1;i<100000;i++) CubeSphere(i); } );
+            RunTest("sphere/sphere analytical check", () => { for(int i = 1;i<10000;i++) SphereSphere(i); } );
+            RunTest("cube/cube analytical check", () => { for(int i = 1;i<100000;i++) CubeCube(i); } );
         }
 
         public static void RunTest(string desc, Action test)
@@ -38,6 +39,29 @@ namespace GJKEPADemo
             var sw = System.Diagnostics.Stopwatch.StartNew();
             test();
             Console.WriteLine($"Test \"{desc}\" took {sw.ElapsedMilliseconds}ms.");
+        }
+
+        private static void CubeCube(int i)
+        {
+            var s1 = new CubeShape();
+            var s2 = new CubeShape();
+
+            JMatrix rot1 = JMatrix.Identity;
+            JMatrix rot2 = JMatrix.Identity;
+
+            JVector pos1 = new JVector(1.0d+(double)i/10, 0.1d, 0.0d);
+            JVector pos2 = new JVector(-(double)i/10, 0.0d, 0.0d);
+
+            JVector p1, p2;
+            double separation;
+
+            GJKEPA.Detect(s1, s2, ref rot1, ref rot2, ref pos1, ref pos2,
+            out p1, out p2, out separation);
+
+            double analyticalDistance = 2.0d * (double)i/10;
+
+            if(Math.Abs(analyticalDistance - separation) > 1e-5d)
+                throw new Exception("Distance does not match analytical result.");
         }
 
         private static void CubeSphere(int i)
@@ -78,7 +102,7 @@ namespace GJKEPADemo
             double analyticalDistance = (pos2-pos1).Length() - 1.0d;
 
             if(Math.Abs(analyticalDistance - separation) > 1e-5d)
-                throw new Exception("Sphere/Sphere distance does not match analytical result.");
+                throw new Exception("Distance does not match analytical result.");
         }
     }
 }

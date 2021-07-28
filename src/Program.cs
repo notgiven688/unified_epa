@@ -79,7 +79,7 @@ namespace GJKEPADemo
         [STAThread]
         static void Main()
         {
-#if TEST
+#if DEBUG
             #pragma warning disable CS0162
             Tests.RunTests();
             return;
