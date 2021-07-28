@@ -1,5 +1,5 @@
 # Unified EPA Demo 
-[![uepatests](https://github.com/notgiven688/unified_epa/actions/workflows/unified_epa_tests.yml/badge.svg)](https://github.com/notgiven688/unified_epa/actions/workflows/dotnet.yml)
+[![uepa_tests](https://github.com/notgiven688/unified_epa/actions/workflows/uepa_tests.yml/badge.svg)](https://github.com/notgiven688/unified_epa/actions/workflows/uepa_tests.yml)
 
 Robust and simple implementation of the **Gilbert-Johnson-Keerthi** (GJK) distance and the **Expanding Polytope Algorithm** (EPA).
 
