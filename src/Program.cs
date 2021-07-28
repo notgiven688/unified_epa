@@ -122,6 +122,7 @@ namespace GJKEPADemo
         {
 #if TEST
             #pragma warning disable CS0162
+            
             var sw = System.Diagnostics.Stopwatch.StartNew();
             for(int i = 0;i<100000;i++) Stress(i);
             Console.WriteLine($"Cube/Sphere stress test took {sw.ElapsedMilliseconds} ms.");
