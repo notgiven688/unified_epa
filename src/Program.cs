@@ -116,7 +116,6 @@ namespace GJKEPADemo
                 throw new Exception("Sphere/Sphere distance does not match analytical result.");
         }
 
-
         [STAThread]
         static void Main()
         {
