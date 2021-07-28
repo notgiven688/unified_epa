@@ -90,7 +90,7 @@ namespace GJKEPADemo
             JMatrix rot1 = JMatrix.CreateRotationX((double)i);
             JMatrix rot2 = JMatrix.CreateRotationY(-(double)i);
 
-            JVector pos1 = new JVector(0.1f+(double)i/1e5d, 0.1d, 0.2d);
+            JVector pos1 = new JVector(0.1d+(double)i/1e5d, 0.1d, 0.2d);
             JVector pos2 = new JVector(0.8d, 0.3d, 0.4d);
 
             JVector p1, p2;
