@@ -49,8 +49,8 @@ namespace GJKEPADemo
             JMatrix rot1 = JMatrix.Identity;
             JMatrix rot2 = JMatrix.Identity;
 
-            JVector pos1 = new JVector(1.0d+(double)i/10, 0.1d, 0.0d);
-            JVector pos2 = new JVector(-(double)i/10, 0.0d, 0.0d);
+            JVector pos1 = new JVector(1.0d+(double)i/10.0d, 0.1d, 0.0d);
+            JVector pos2 = new JVector(-(double)i/10.0d, 0.0d, 0.0d);
 
             JVector p1, p2;
             double separation;
