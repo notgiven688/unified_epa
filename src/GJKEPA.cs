@@ -28,6 +28,7 @@ namespace GJKEPADemo
     public sealed class GJKEPA
     {
         private const double CollideEpsilon = 1e-6d;
+        private const double NumericEpsilon = 1e-16d;
         private const int MaxIter = 85;
 
         public struct Statistics { public double Accuracy; public int Iterations; }
@@ -278,9 +279,20 @@ namespace GJKEPADemo
                 JVector.Cross(ref u, ref v, out triangle.Normal);
                 triangle.NormalSq = triangle.Normal.LengthSquared();
 
+                Diagnostics.Debug.Assert(triangle.NormalSq > NumericEpsilon * NumericEpsilon);
+
                 CalcBarycentric(tPointer, out JVector bc);
                 CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
                 triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+
+                if(triangle.ClosestToOriginSq < NumericEpsilon * NumericEpsilon)
+                {
+                    // Rare condition: ClosestToOrigin is used as a search direction. 
+                    // If it is zero (i.e. the origin is on the triangle) use the triangle
+                    // normal as search direction.
+                    JVector.Multiply(ref triangle.Normal, NumericEpsilon / triangle.NormalSq, out triangle.ClosestToOrigin);
+                    triangle.ClosestToOriginSq = NumericEpsilon * NumericEpsilon;
+                }
                 
                 triangle.Visited = false;
                 SortInTriangle(tPointer);

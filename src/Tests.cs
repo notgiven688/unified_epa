@@ -27,9 +27,9 @@ namespace GJKEPADemo
     {
         public static void RunTests()
         {
-            RunTest("cube/sphere stress", () => { for (int i = 1; i < 100000; i++) CubeSphere(i); });
-            RunTest("sphere/sphere analytical check", () => { for (int i = 1; i < 10000; i++) SphereSphere(i); });
-            RunTest("cube/cube analytical check", () => { for (int i = 1; i < 100000; i++) CubeCube(i); });
+            RunTest("cube/sphere stress", () => { for (int i = 0; i < 100000; i++) CubeSphere(i); });
+            RunTest("sphere/sphere analytical check", () => { for (int i = 0; i < 10000; i++) SphereSphere(i); });
+            RunTest("cube/cube analytical check", () => { for (int i = 0; i < 100000; i++) CubeCube(i); });
         }
 
         public static void RunTest(string desc, Action test)
