@@ -28,7 +28,7 @@ namespace GJKEPADemo
     public sealed class GJKEPA
     {
         private const double CollideEpsilon = 1e-6d;
-        private const double NumericEpsilon = 1e-16d;
+        private const double NumericEpsilon = 1e-12d;
         private const int MaxIter = 85;
 
         public struct Statistics { public double Accuracy; public int Iterations; }
