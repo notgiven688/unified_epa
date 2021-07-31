@@ -28,7 +28,6 @@ namespace GJKEPADemo
     public sealed class GJKEPA
     {
         private const double CollideEpsilon = 1e-6d;
-        private const double NumericEpsilon = 1e-12d;
         private const int MaxIter = 85;
 
         public struct Statistics { public double Accuracy; public int Iterations; }
@@ -283,6 +282,7 @@ namespace GJKEPADemo
                 CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
                 triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
 
+                const double NumericEpsilon = 1e-12d;
                 if(triangle.ClosestToOriginSq < NumericEpsilon * NumericEpsilon)
                 {
                     // Rare condition: ClosestToOrigin is used as a search direction. 
