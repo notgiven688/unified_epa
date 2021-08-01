@@ -351,28 +351,6 @@ namespace GJKEPADemo
                     vPointer++;
                     MKD.Support(ref searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
 
-                    // Termination condition for GJK and EPA
-                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
-                    //     v = Vertices[vPointer] (support point)
-                    //     e = CollideEpsilon
-                    // The termination condition reads: 
-                    //     abs(dot(normalize(c), v - c)) < e
-                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
-                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
-
-                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[Head].ClosestToOrigin);
-
-                    if (deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq)
-                    {
-                        separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
-                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
-                        if (OriginEnclosed) separation *= -1;
-                        CalcBarycentric(Head, out JVector bc);
-                        CalcPointA(Head, ref bc, out point1);
-                        CalcPointB(Head, ref bc, out point2);
-                        return true;
-                    }
-
                     // Search for a triangle on the existing polytope which is "lighted" by the new support point.
                     // The (double-linked) list of triangles is sorted by their distance to the origin. This allows
                     // for an efficient search.
@@ -388,12 +366,26 @@ namespace GJKEPADemo
                         }
                     }
 
-                    if (ltri == -1)
-                    {
-                        System.Diagnostics.Debug.WriteLine(
-                            "exit reason 1 - new point not clearly outside polytope.");
+                    // Termination condition for GJK and EPA
+                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
+                    //     v = Vertices[vPointer] (support point)
+                    //     e = CollideEpsilon
+                    // The termination condition reads: 
+                    //     abs(dot(normalize(c), v - c)) < e
+                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
+                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
 
-                        return false;
+                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[Head].ClosestToOrigin);
+
+                    if (ltri == -1 || deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq)
+                    {
+                        separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
+                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
+                        if (OriginEnclosed) separation *= -1;
+                        CalcBarycentric(Head, out JVector bc);
+                        CalcPointA(Head, ref bc, out point1);
+                        CalcPointB(Head, ref bc, out point2);
+                        return true;
                     }
 
                     // Adjacent triangles are searched (flood-fill algorithm) to determine all lighted triangles
@@ -435,7 +427,7 @@ namespace GJKEPADemo
                         if (found == -1)
                         {
                             System.Diagnostics.Debug.WriteLine(
-                                "exit reason 2 - horizon incomplete.");
+                                "exit reason 1 - horizon incomplete.");
 
                             return false;
                         }
@@ -452,7 +444,7 @@ namespace GJKEPADemo
                 }
 
                 Diagnostics.Debug.WriteLine(
-                    $"exit reason 3: could not converge within {MaxIter} iterations.");
+                    $"exit reason 2: could not converge within {MaxIter} iterations.");
 
                 return false;
             }
