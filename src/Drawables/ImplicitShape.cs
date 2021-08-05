@@ -20,7 +20,7 @@
 * 
 */
 
-//#define SMOOTHGROUPS
+#define SMOOTHGROUPS
 
 using System;
 using System.Linq;
@@ -81,7 +81,7 @@ namespace GJKEPADemo
             // by Ben Kenwright.
             // https://xbdev.net/physics/MinkowskiDifference/index.php
 
-            float distanceThreshold = 0.0f;
+            double distanceThreshold = 1e-12d;
             int counter = 0;
 
             if (generationThreshold < 0) generationThreshold = 4;
@@ -183,7 +183,7 @@ namespace GJKEPADemo
                 {
                     JVector n = (p3 - p1) % (p2 - p1);
 
-                    if (n.LengthSquared() > 1e-12)
+                    if (n.LengthSquared() > 0)
                     {
                         AVertex av1 = new AVertex(p1, n);
                         AVertex av2 = new AVertex(p2, n);
@@ -236,7 +236,7 @@ namespace GJKEPADemo
                     foreach(var elemB in b)
                     {
                         if(JVector.Dot(JVector.Normalize(elemA.Normal), 
-                           JVector.Normalize(elemB.Normal)) > 0.1d)
+                           JVector.Normalize(elemB.Normal)) > 0.5d)
                         {
                             a.AddRange(b);
                             b.Clear();

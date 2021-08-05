@@ -51,9 +51,9 @@ namespace GJKEPADemo
         public void SetDefaultMaterial()
         {
             Ambient.Set(0.5f,0.5f,0.5f);
-            Diffuse.Set(0.4f,0.4f,0.4f);
-            Specular.Set(0.4f,0.4f,0.4f);
-            Shininess.Set(256.0f);
+            Diffuse.Set(0.6f,0.6f,0.6f);
+            Specular.Set(0.3f,0.3f,0.3f);
+            Shininess.Set(128.0f);
             Alpha.Set(1.0f);
         }
 
@@ -98,25 +98,43 @@ namespace GJKEPADemo
         void main()
         {
             vec3 lightColor = vec3(1,1,1);
-            vec3 lightPos = vec3(-5,10,0);
+
+            vec3 lights[4];
+
+            // three spot-lights from above,
+            // one diffusive reflection from the ground
+            lights[0] = vec3(-10, 20, 0);
+            lights[1] = vec3(10, 20, 0);
+            lights[2] = vec3(0, 10, -10);
+            lights[3] = vec3(0, -10, 0);
+
             vec3 nn = normalize(normal);
 
             // ambient
             vec3 ambient = lightColor * material.ambient;
             
-            // diffuse
-            vec3 lightDir = normalize(lightPos - pos);
-            float diff = max(-dot(nn, lightDir), 0.0);
-            vec3 diffusive = lightColor * diff * material.diffuse;
+            vec3 diffusive = vec3(0, 0, 0);
+            vec3 specular = vec3(0, 0, 0);
 
-            // specular
-            vec3 viewDir = normalize(viewPos - pos);
-            vec3 reflectDir = reflect(-lightDir, nn);
-            float spec = pow(max(dot(viewDir, reflectDir),0.0), material.shininess);
+            for(int i=0; i<4; i++)
+            {
+                // diffuse
+                vec3 lightDir = normalize(lights[i] - pos);
+                float diff = max(-dot(nn, lightDir), 0.0);
+                diffusive += lightColor * diff * material.diffuse;
+            }
 
-            vec3 specular = lightColor * (spec * material.specular);
-            vec3 result = ambient + diffusive + specular;
-
+            for(int i=0; i<3; i++)
+            {
+                // specular
+                vec3 lightDir = normalize(lights[i] - pos);
+                vec3 viewDir = normalize(viewPos - pos);
+                vec3 reflectDir = reflect(-lightDir, nn);
+                float spec = pow(max(dot(viewDir, reflectDir),0.0), material.shininess);
+                specular += lightColor * spec * material.specular;
+            }
+            
+            vec3 result = ambient + 0.25*diffusive + 0.333*specular;
             FragColor = vec4(result, material.alpha);
         }
         ";
