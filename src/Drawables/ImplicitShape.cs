@@ -261,7 +261,7 @@ namespace GJKEPADemo
             {
                 for (int e = 0; e < groups.Count; e++)
                 {
-                    if (i != e)
+                    if (i > e)
                     {
                         if (Merge(groups[i], groups[e]))
                             goto again;
