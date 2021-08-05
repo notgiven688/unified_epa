@@ -19,7 +19,11 @@
 * SOFTWARE.
 * 
 */
+
+//#define SMOOTHGROUPS
+
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using OpenTK.Graphics.OpenGL;
@@ -48,7 +52,27 @@ namespace GJKEPADemo
             public JVector n2;
             public JVector n3;
             public int generation;
-        };
+        }
+
+        private struct ATriangle
+        {
+            public AVertex[] Vertices;
+        }
+
+        private class AVertex
+        {
+            public JVector Position;
+            public JVector Normal;
+
+            public AVertex(JVector p, JVector n)
+            {
+                this.Position = p;
+                this.Normal = n;
+            }
+        }
+
+        List<AVertex> avertices = new List<AVertex>();
+        List<ATriangle> atriangles = new List<ATriangle>();
 
         private void MakeHull(int generationThreshold)
         {
@@ -158,28 +182,99 @@ namespace GJKEPADemo
                 else
                 {
                     JVector n = (p3 - p1) % (p2 - p1);
-                    n.Normalize();
-
 
                     if (n.LengthSquared() > 1e-12)
                     {
-                        AddIndex(counter++);
-                        AddIndex(counter++);
-                        AddIndex(counter++);
+                        AVertex av1 = new AVertex(p1, n);
+                        AVertex av2 = new AVertex(p2, n);
+                        AVertex av3 = new AVertex(p3, n);
 
-                        AddVertex(
-                            new Vector3((float)p1.X, (float)p1.Y, (float)p1.Z),
-                            new Vector3((float)n.X, (float)n.Y, (float)n.Z));
+                        avertices.Add(av1);
+                        avertices.Add(av2);
+                        avertices.Add(av3);
 
-                        AddVertex(
-                            new Vector3((float)p2.X, (float)p2.Y, (float)p2.Z),
-                            new Vector3((float)n.X, (float)n.Y, (float)n.Z));
-
-                        AddVertex(
-                            new Vector3((float)p3.X, (float)p3.Y, (float)p3.Z),
-                            new Vector3((float)n.X, (float)n.Y, (float)n.Z));
+                        ATriangle atri = new ATriangle();
+                        atri.Vertices = new AVertex[3] { av1, av2, av3 };
+                        atriangles.Add(atri);
                     }
                 }
+            }
+
+#if SMOOTHGROUPS
+            var groups = avertices.GroupBy(s => s.Position);
+            foreach(var group in groups) 
+            {
+                SmoothGroup(new Stack<AVertex>(group));
+            }
+#endif
+   
+            counter = 0;
+
+            foreach(ATriangle atri in atriangles)
+            {
+                
+                for(int i = 0;i < 3;i++)
+                {
+                    JVector p = atri.Vertices[i].Position;
+                    JVector n = atri.Vertices[i].Normal;
+
+                    AddIndex(counter++);
+
+                    AddVertex(
+                        new Vector3((float)p.X, (float)p.Y, (float)p.Z),
+                        new Vector3((float)n.X, (float)n.Y, (float)n.Z));
+                }
+            }
+        }
+
+        void SmoothGroup(Stack<AVertex> avertices)
+        {
+            bool Merge(List<AVertex> a, List<AVertex> b)
+            {
+                foreach(var elemA in a)
+                {
+                    foreach(var elemB in b)
+                    {
+                        if(JVector.Dot(JVector.Normalize(elemA.Normal), 
+                           JVector.Normalize(elemB.Normal)) > 0.1d)
+                        {
+                            a.AddRange(b);
+                            b.Clear();
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            var groups = new List<List<AVertex>>();
+
+            while(avertices.Count > 0)
+            {
+                List<AVertex> group = new List<AVertex>();
+                group.Add(avertices.Pop());
+                groups.Add(group);
+            }
+
+        again:
+            for (int i = 0; i < groups.Count; i++)
+            {
+                for (int e = 0; e < groups.Count; e++)
+                {
+                    if (i != e)
+                    {
+                        if (Merge(groups[i], groups[e]))
+                            goto again;
+                    }
+                }
+            }
+
+            foreach(var group in groups)
+            {
+                JVector normal = JVector.Zero;
+                foreach(var elem in group) normal += elem.Normal;
+                normal.Normalize();
+                foreach(var elem in group) elem.Normal = normal;
             }
         }
 
