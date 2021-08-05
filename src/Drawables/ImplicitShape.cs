@@ -74,7 +74,7 @@ namespace GJKEPADemo
         List<AVertex> avertices = new List<AVertex>();
         List<ATriangle> atriangles = new List<ATriangle>();
 
-        private void MakeHull(int generationThreshold)
+        private void MakeHull(int generationThreshold, bool smoothGroups = true)
         {
             // Based on the acticle
             // [Collision Detection Using Minkowski Difference, 2008]
@@ -201,10 +201,10 @@ namespace GJKEPADemo
             }
 
 #if SMOOTHGROUPS
-            var groups = avertices.GroupBy(s => s.Position);
-            foreach(var group in groups) 
+            if(smoothGroups)
             {
-                SmoothGroup(new Stack<AVertex>(group));
+                foreach(var group in avertices.GroupBy(s => s.Position)) 
+                    SmoothGroup(new Stack<AVertex>(group));
             }
 #endif
    
