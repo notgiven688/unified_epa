@@ -48,10 +48,10 @@ namespace GJKEPADemo
 
         private struct ClipTriangle
         {
-            public JVector n1;
-            public JVector n2;
-            public JVector n3;
-            public int generation;
+            public JVector v1;
+            public JVector v2;
+            public JVector v3;
+            public int division;
         }
 
         private struct ATriangle
@@ -71,119 +71,78 @@ namespace GJKEPADemo
             }
         }
 
-        List<AVertex> avertices = new List<AVertex>();
-        List<ATriangle> atriangles = new List<ATriangle>();
-
-        private void MakeHull(int generationThreshold, bool smoothGroups = true)
+        private void MakeHull(int subdivisions, bool smoothGroups = true)
         {
-            // Based on the acticle
-            // [Collision Detection Using Minkowski Difference, 2008]
-            // by Ben Kenwright.
-            // https://xbdev.net/physics/MinkowskiDifference/index.php
+            List<AVertex> avertices = new List<AVertex>();
+            List<ATriangle> atriangles = new List<ATriangle>();
 
-            double distanceThreshold = 1e-12d;
-            int counter = 0;
+            Stack<ClipTriangle> sphereTesselation = new Stack<ClipTriangle>();
+            double gr = (1.0d + Math.Sqrt(5.0d)) / 2.0d;
 
-            if (generationThreshold < 0) generationThreshold = 4;
-
-            Stack<ClipTriangle> activeTriList = new Stack<ClipTriangle>();
-
-            JVector[] v = new JVector[] // 6 Array
-		    {
-            new JVector( -1,  0,  0 ),
-            new JVector(  1,  0,  0 ),
-
-            new JVector(  0, -1,  0 ),
-            new JVector(  0,  1,  0 ),
-
-            new JVector(  0,  0, -1 ),
-            new JVector(  0,  0,  1 ),
+            JVector[] vertices = new JVector[12]
+            {
+                new JVector(0, +1, +gr), new JVector(0, -1, +gr), new JVector(0, +1, -gr), new JVector(0, -1, -gr),
+                new JVector(+1, +gr, 0), new JVector(+1, -gr, 0), new JVector(-1, +gr, 0), new JVector(-1, -gr, 0),
+                new JVector(+gr, 0, +1), new JVector(+gr, 0, -1), new JVector(-gr, 0, +1), new JVector(-gr, 0, -1),
             };
 
-            int[,] kTriangleVerts = new int[8, 3] // 8 x 3 Array
-		    {
-            { 5, 1, 3 },
-            { 4, 3, 1 },
-            { 3, 4, 0 },
-            { 0, 5, 3 },
-
-            { 5, 2, 1 },
-            { 4, 1, 2 },
-            { 2, 0, 4 },
-            { 0, 2, 5 }
+            int[,] indices = new int[20, 3]
+            {
+                { 1, 0, 10 }, { 0, 1, 8 }, { 0, 4, 6 }, { 4, 0, 8 }, { 0, 6, 10 }, { 5, 1, 7 }, { 1, 5, 8 }, { 7, 1, 10 },
+                { 2, 3, 11 }, { 3, 2, 9 }, { 4, 2, 6 }, { 2, 4, 9 }, { 6, 2, 11 }, { 3, 5, 7 }, { 5, 3, 9 }, { 3, 7, 11 },
+                { 4, 8, 9 }, { 8, 5, 9 }, { 10, 6, 11 }, { 7, 10, 11 }
             };
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 20; i++)
             {
                 ClipTriangle tri = new ClipTriangle();
-                tri.n1 = v[kTriangleVerts[i, 0]];
-                tri.n2 = v[kTriangleVerts[i, 1]];
-                tri.n3 = v[kTriangleVerts[i, 2]];
-                tri.generation = 0;
-                activeTriList.Push(tri);
+                tri.v1 = vertices[indices[i, 0]];
+                tri.v2 = vertices[indices[i, 1]];
+                tri.v3 = vertices[indices[i, 2]];
+                tri.division = 0;
+                sphereTesselation.Push(tri);
             }
 
-            List<JVector> pointSet = new List<JVector>();
-
-            while (activeTriList.Count > 0)
+            while (sphereTesselation.Count > 0)
             {
-                ClipTriangle tri = activeTriList.Pop();
+                ClipTriangle tri = sphereTesselation.Pop();
 
-                JVector p1; SupportMap.SupportMapping(ref tri.n1, out p1);
-                JVector p2; SupportMap.SupportMapping(ref tri.n2, out p2);
-                JVector p3; SupportMap.SupportMapping(ref tri.n3, out p3);
-
-                double d1 = (p2 - p1).LengthSquared();
-                double d2 = (p3 - p2).LengthSquared();
-                double d3 = (p1 - p3).LengthSquared();
-
-                if (Math.Max(Math.Max(d1, d2), d3) > distanceThreshold && tri.generation < generationThreshold)
+                if (tri.division < subdivisions)
                 {
-                    ClipTriangle tri1 = new ClipTriangle();
-                    ClipTriangle tri2 = new ClipTriangle();
-                    ClipTriangle tri3 = new ClipTriangle();
-                    ClipTriangle tri4 = new ClipTriangle();
+                    ClipTriangle tri1, tri2, tri3, tri4;
+                    JVector n;
 
-                    tri1.generation = tri.generation + 1;
-                    tri2.generation = tri.generation + 1;
-                    tri3.generation = tri.generation + 1;
-                    tri4.generation = tri.generation + 1;
+                    tri1.division = tri.division + 1;
+                    tri2.division = tri.division + 1;
+                    tri3.division = tri.division + 1;
+                    tri4.division = tri.division + 1;
 
-                    tri1.n1 = tri.n1;
-                    tri2.n2 = tri.n2;
-                    tri3.n3 = tri.n3;
+                    tri1.v1 = tri.v1;
+                    tri2.v2 = tri.v2;
+                    tri3.v3 = tri.v3;
 
-                    JVector n = 0.5d * (tri.n1 + tri.n2);
-                    n.Normalize();
+                    n = (tri.v1 + tri.v2) / 2.0d;
+                    tri1.v2 = n; tri2.v1 = n; tri4.v3 = n;
 
-                    tri1.n2 = n;
-                    tri2.n1 = n;
-                    tri4.n3 = n;
+                    n = (tri.v2 + tri.v3) / 2.0d;
+                    tri2.v3 = n; tri3.v2 = n; tri4.v1 = n;
 
-                    n = 0.5d * (tri.n2 + tri.n3);
-                    n.Normalize();
+                    n = (tri.v3 + tri.v1) / 2.0d;
+                    tri1.v3 = n; tri3.v1 = n; tri4.v2 = n;
 
-                    tri2.n3 = n;
-                    tri3.n2 = n;
-                    tri4.n1 = n;
-
-                    n = 0.5d * (tri.n3 + tri.n1);
-                    n.Normalize();
-
-                    tri1.n3 = n;
-                    tri3.n1 = n;
-                    tri4.n2 = n;
-
-                    activeTriList.Push(tri1);
-                    activeTriList.Push(tri2);
-                    activeTriList.Push(tri3);
-                    activeTriList.Push(tri4);
+                    sphereTesselation.Push(tri1);
+                    sphereTesselation.Push(tri2);
+                    sphereTesselation.Push(tri3);
+                    sphereTesselation.Push(tri4);
                 }
                 else
                 {
-                    JVector n = (p3 - p1) % (p2 - p1);
+                    JVector p1; SupportMap.SupportMapping(ref tri.v1, out p1);
+                    JVector p2; SupportMap.SupportMapping(ref tri.v2, out p2);
+                    JVector p3; SupportMap.SupportMapping(ref tri.v3, out p3);
+                    JVector n = (p3 - p1) % (p2 - p1); 
 
-                    if (n.LengthSquared() > 0)
+                    if (n.LengthSquared() > 1e-24d)
                     {
                         AVertex av1 = new AVertex(p1, n);
                         AVertex av2 = new AVertex(p2, n);
@@ -201,19 +160,18 @@ namespace GJKEPADemo
             }
 
 #if SMOOTHGROUPS
-            if(smoothGroups)
+            if (smoothGroups)
             {
-                foreach(var group in avertices.GroupBy(s => s.Position)) 
+                foreach (var group in avertices.GroupBy(s => s.Position))
                     SmoothGroup(new Stack<AVertex>(group));
             }
 #endif
-   
-            counter = 0;
 
-            foreach(ATriangle atri in atriangles)
+            int counter = 0;
+
+            foreach (ATriangle atri in atriangles)
             {
-                
-                for(int i = 0;i < 3;i++)
+                for (int i = 0; i < 3; i++)
                 {
                     JVector p = atri.Vertices[i].Position;
                     JVector n = atri.Vertices[i].Normal;
@@ -231,11 +189,11 @@ namespace GJKEPADemo
         {
             bool Merge(List<AVertex> a, List<AVertex> b)
             {
-                foreach(var elemA in a)
+                foreach (var elemA in a)
                 {
-                    foreach(var elemB in b)
+                    foreach (var elemB in b)
                     {
-                        if(JVector.Dot(JVector.Normalize(elemA.Normal), 
+                        if (JVector.Dot(JVector.Normalize(elemA.Normal),
                            JVector.Normalize(elemB.Normal)) > 0.5d)
                         {
                             a.AddRange(b);
@@ -249,7 +207,7 @@ namespace GJKEPADemo
 
             var groups = new List<List<AVertex>>();
 
-            while(avertices.Count > 0)
+            while (avertices.Count > 0)
             {
                 List<AVertex> group = new List<AVertex>();
                 group.Add(avertices.Pop());
@@ -269,18 +227,18 @@ namespace GJKEPADemo
                 }
             }
 
-            foreach(var group in groups)
+            foreach (var group in groups)
             {
                 JVector normal = JVector.Zero;
-                foreach(var elem in group) normal += elem.Normal;
+                foreach (var elem in group) normal += elem.Normal;
                 normal.Normalize();
-                foreach(var elem in group) elem.Normal = normal;
+                foreach (var elem in group) elem.Normal = normal;
             }
         }
 
         public override void Build()
         {
-            this.MakeHull(5);
+            this.MakeHull(4);
         }
 
         public override void Load()
