@@ -137,9 +137,9 @@ namespace GJKEPADemo
                 }
                 else
                 {
-                    JVector p1; SupportMap.SupportMapping(ref tri.v1, out p1);
-                    JVector p2; SupportMap.SupportMapping(ref tri.v2, out p2);
-                    JVector p3; SupportMap.SupportMapping(ref tri.v3, out p3);
+                    SupportMap.SupportMapping(ref tri.v1, out JVector p1);
+                    SupportMap.SupportMapping(ref tri.v2, out JVector p2);
+                    SupportMap.SupportMapping(ref tri.v3, out JVector p3);
                     JVector n = (p3 - p1) % (p2 - p1); 
 
                     if (n.LengthSquared() > 1e-24d)
