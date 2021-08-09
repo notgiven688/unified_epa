@@ -71,7 +71,7 @@ namespace GJKEPADemo
             }
         }
 
-        private void MakeHull(int subdivisions, bool smoothGroups = true)
+        private void MakeHull(int subdivisions)
         {
             List<AVertex> avertices = new List<AVertex>();
             List<ATriangle> atriangles = new List<ATriangle>();
@@ -159,13 +159,8 @@ namespace GJKEPADemo
                 }
             }
 
-#if SMOOTHGROUPS
-            if (smoothGroups)
-            {
-                foreach (var group in avertices.GroupBy(s => s.Position))
-                    SmoothGroup(new Stack<AVertex>(group));
-            }
-#endif
+            foreach (var group in avertices.GroupBy(s => s.Position))
+                SmoothGroup(new Stack<AVertex>(group));
 
             int counter = 0;
 
