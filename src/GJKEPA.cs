@@ -381,13 +381,12 @@ namespace GJKEPADemo
                     bool repeat = false;
                     for (int i = 4; i < vPointer; i++)
                     {
-                        JVector.Subtract(ref Vertices[i], ref Vertices[vPointer], out JVector diff);
+                        if(Math.Abs(Vertices[i].X - Vertices[vPointer].X) > NumericEpsilon) continue;
+                        if(Math.Abs(Vertices[i].Y - Vertices[vPointer].Y) > NumericEpsilon) continue;
+                        if(Math.Abs(Vertices[i].Z - Vertices[vPointer].Z) > NumericEpsilon) continue;
 
-                        if (diff.LengthSquared() < NumericEpsilon)
-                        {
-                            repeat = true;
-                            break;
-                        }
+                        repeat = true;
+                        break;
                     }
 
                     if (ltri == -1 || repeat || tc)
