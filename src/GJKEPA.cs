@@ -279,20 +279,16 @@ namespace GJKEPADemo
                 JVector.Cross(ref u, ref v, out triangle.Normal);
                 triangle.NormalSq = triangle.Normal.LengthSquared();
 
-                CalcBarycentric(tPointer, out JVector bc);
-                CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
-                triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
-
-                if(triangle.ClosestToOriginSq < NumericEpsilon * NumericEpsilon)
+                if (triangle.NormalSq < NumericEpsilon * NumericEpsilon)
                 {
-                    // Rare condition: ClosestToOrigin is used as a search direction. 
-                    // If it is zero (i.e. the origin is on the triangle) use the triangle
-                    // normal as search direction.
-                    if(triangle.NormalSq > NumericEpsilon * NumericEpsilon)
-                    {
-                        triangle.ClosestToOriginSq = NumericEpsilon * NumericEpsilon;
-                        JVector.Multiply(ref triangle.Normal, NumericEpsilon / triangle.NormalSq, out triangle.ClosestToOrigin);
-                    }
+                    triangle.ClosestToOrigin = JVector.Zero;
+                    triangle.ClosestToOriginSq = float.NaN;
+                }
+                else
+                {
+                    CalcBarycentric(tPointer, out JVector bc);
+                    CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
+                    triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                 }
                 
                 triangle.Visited = false;
