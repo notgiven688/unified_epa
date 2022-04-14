@@ -27,6 +27,7 @@ namespace GJKEPADemo
 {
     public sealed class GJKEPA
     {
+        private const double NumericEpsilon = 1e-12d;
         private const double CollideEpsilon = 1e-6d;
         private const int MaxIter = 85;
 
@@ -282,7 +283,6 @@ namespace GJKEPADemo
                 CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
                 triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
 
-                const double NumericEpsilon = 1e-12d;
                 if(triangle.ClosestToOriginSq < NumericEpsilon * NumericEpsilon)
                 {
                     // Rare condition: ClosestToOrigin is used as a search direction. 
@@ -376,8 +376,25 @@ namespace GJKEPADemo
                     //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
 
                     double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[Head].ClosestToOrigin);
+                    bool tc = deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq;
 
-                    if (ltri == -1 || deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq)
+                    // Check if new support point is in the set of already found points.
+                    // Compare with the detailed discussion in
+                    // [Gino van den Bergen, Collision Detection in Interactive 3D Environments]
+
+                    bool repeat = false;
+                    for (int i = 4; i < vPointer; i++)
+                    {
+                        JVector.Subtract(ref Vertices[i], ref Vertices[vPointer], out JVector diff);
+
+                        if (diff.LengthSquared() < NumericEpsilon)
+                        {
+                            repeat = true;
+                            break;
+                        }
+                    }
+
+                    if (ltri == -1 || repeat || tc)
                     {
                         separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
                         this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
