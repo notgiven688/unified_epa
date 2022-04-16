@@ -184,6 +184,27 @@ namespace GJKEPADemo
                 JVector b = Vertices[tri.B];
                 JVector c = Vertices[tri.C];
 
+                JVector u, v, tmp;
+                JVector.Subtract(ref a, ref b, out u);
+                JVector.Subtract(ref a, ref c, out v);
+
+                double t = tri.NormalSq;
+                JVector.Cross(ref u, ref a, out tmp);
+                double gamma = JVector.Dot(ref tmp, ref tri.Normal) / t;
+                JVector.Cross(ref a, ref v, out tmp);
+                double beta = JVector.Dot(ref tmp, ref tri.Normal) / t;
+                double alpha = 1.0d - gamma - beta;
+
+                result.X = alpha; result.Y = beta; result.Z = gamma;
+            }
+
+            public void CalcBarycentricProject(int triangle, out JVector result)
+            {
+                ref Triangle tri = ref Triangles[triangle];
+                JVector a = Vertices[tri.A];
+                JVector b = Vertices[tri.B];
+                JVector c = Vertices[tri.C];
+
                 // Calculate the barycentric coordinates of the origin (0,0,0) projected
                 // onto the plane of the triangle.
                 // 
@@ -199,13 +220,6 @@ namespace GJKEPADemo
                 JVector.Cross(ref a, ref v, out tmp);
                 double beta = JVector.Dot(ref tmp, ref tri.Normal) / t;
                 double alpha = 1.0d - gamma - beta;
-
-                if (OriginEnclosed)
-                {
-                    // early out possible, if origin is enclosed
-                    result.X = alpha; result.Y = beta; result.Z = gamma;
-                    return;
-                }
 
                 // Clamp the projected barycentric coordinates to lie within the triangle,
                 // such that the clamped coordinates are closest (euclidean) to the original point.
@@ -286,9 +300,18 @@ namespace GJKEPADemo
                 }
                 else
                 {
-                    CalcBarycentric(tPointer, out JVector bc);
-                    CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
-                    triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+                    if(OriginEnclosed)
+                    {
+                        double delta = JVector.Dot(ref triangle.Normal,ref Vertices[a]);
+                        JVector.Multiply(ref triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
+                        triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+                    }
+                    else
+                    {
+                        CalcBarycentricProject(tPointer, out JVector bc);
+                        CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
+                        triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+                    }
                 }
                 
                 triangle.Visited = false;
@@ -393,8 +416,13 @@ namespace GJKEPADemo
                     {
                         separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
                         this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
+
                         if (OriginEnclosed) separation *= -1;
-                        CalcBarycentric(Head, out JVector bc);
+
+                        JVector bc;
+                        if (OriginEnclosed) CalcBarycentric(Head, out bc);
+                        else CalcBarycentricProject(Head, out bc);
+
                         CalcPointA(Head, ref bc, out point1);
                         CalcPointB(Head, ref bc, out point2);
                         return true;
