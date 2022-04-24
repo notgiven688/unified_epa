@@ -162,6 +162,19 @@ namespace GJKEPADemo
         }
     }
 
+    [Shape("Ellipsoid")]
+    public class EllipsoidShape : ISupportMappable
+    {
+        public void SupportMapping(ref JVector direction, out JVector result)
+        {
+            // ellipsoid == affine transformation of a sphere
+            JVector dir = direction;
+            dir.X *= 0.5f; dir.Y *= 0.8f; dir.Z *= 0.2f;
+            ShapeHelper.SupportSphere(ref dir, out result);
+            result.X *= 0.5f; result.Y *= 0.8f; result.Z *= 0.2f;
+        }
+    }
+
     [Shape("Capped Cone")]
     public class CappedConeShape : ISupportMappable
     {
