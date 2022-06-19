@@ -53,6 +53,8 @@ namespace GJKEPADemo
             KeyboardState ks = Showcase.Current.KeyState;
             MouseState ms = Showcase.Current.MouseState;
 
+            float timescale = 60.0f * (float)e.Time;
+
             if (ms.IsButtonDown(MouseButton.Left))
             {
                 phi -= ms.Delta.X * 0.006f;
@@ -77,7 +79,7 @@ namespace GJKEPADemo
             if (ks.IsKeyDown(Keys.D)) mv -= cright;
 
             if (mv.LengthSquared > 0.1f) mv.Normalize();
-            Position += 0.1f * mv;
+            Position += 0.1f * mv * timescale;
 
             float width = (float)Showcase.Current.Window.Size.X;
             float height = (float)Showcase.Current.Window.Size.Y;

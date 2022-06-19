@@ -164,13 +164,15 @@ namespace GJKEPADemo
             // else System.IO.File.AppendAllText("data.txt", 0.ToString() + "\n");
         }
 
-        private void HandleInput()
+        private void HandleInput(FrameEventArgs e)
         {
             bool IsSwitched(Keys key) =>
                 KeyState.IsKeyDown(key) && !KeyState.WasKeyDown(key);
 
-            if (KeyState.IsKeyDown(Keys.K)) distance -= 0.03f;
-            if (KeyState.IsKeyDown(Keys.L)) distance += 0.03f;
+            float timescale = 60.0f * (float)e.Time;
+
+            if (KeyState.IsKeyDown(Keys.K)) distance -= 0.03f * timescale;
+            if (KeyState.IsKeyDown(Keys.L)) distance += 0.03f * timescale;
         
             if (IsSwitched(Keys.R)) autorotate = !autorotate;
             if (IsSwitched(Keys.T)) advancerotation = true;
@@ -184,18 +186,19 @@ namespace GJKEPADemo
         public void Update(FrameEventArgs e)
         {
             Vector3 deltaAngle = new Vector3(0.006f, 0.007f, 0.008f);
+            float timescale = 60.0f * (float)e.Time;
 
             this.MouseState = this.Window.MouseState;
             this.KeyState = this.Window.KeyboardState;
 
             if (autorotate || advancerotation)
             {
-                (PrimitiveLeft as ImplicitShape).Angles += deltaAngle;
-                (PrimitiveRight as ImplicitShape).Angles -= deltaAngle;
+                (PrimitiveLeft as ImplicitShape).Angles += deltaAngle * timescale;
+                (PrimitiveRight as ImplicitShape).Angles -= deltaAngle * timescale;
                 advancerotation = false;
             }
 
-            HandleInput();
+            HandleInput(e);
             Detect();
 
             foreach (var component in drawableComponents) component.Update(e);
