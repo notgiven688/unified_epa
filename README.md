@@ -17,7 +17,7 @@ Details of the algorithm are summarized [here](Notes.pdf).
 
 The demo should be able to run cross-platform utilizing OpenGL.
 ```
-1. Install the [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
+1. Install the [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
 2. git clone https://github.com/notgiven688/unified_epa.git
 3. cd unified_epa
 4. dotnet run -c Release
