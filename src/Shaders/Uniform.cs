@@ -45,7 +45,7 @@ namespace GJKEPADemo
         public void Set(float value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.Uniform1(this.location, 1, value);
+            GL.Uniform1f(this.location, value);
         }
     }
 
@@ -56,7 +56,7 @@ namespace GJKEPADemo
         public void Set(TextureUnit value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.Uniform1(this.location, 1, (int)value - (int)TextureUnit.Texture0); // TODO
+            GL.Uniform1i(this.location, (int)value - (int)TextureUnit.Texture0); // ToDo
         }
     }
 
@@ -64,26 +64,16 @@ namespace GJKEPADemo
     {
         public UniformMatrix4(Shader shader, int location) : base(shader, location) { }
 
-        public void Set(Matrix4 value)
-        {
-            this.Set(ref value);
-        }
-
-        public void Set(ref Matrix4 value)
+        public void Set(in Matrix4 value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.UniformMatrix4(this.location, 1, false, value.Row0.X);
+            GL.UniformMatrix4f(this.location, false, value);
         }
 
-        public void SetTranposed(Matrix4 value)
-        {
-            this.SetTranposed(ref value);
-        }
-
-        public void SetTranposed(ref Matrix4 value)
+        public void SetTranposed(in Matrix4 value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.UniformMatrix4(this.location, 1, true, value.Row0.X);
+            GL.UniformMatrix4f(this.location, true, value);
         }
     }
 
@@ -91,22 +81,16 @@ namespace GJKEPADemo
     {
         public UniformVector4(Shader shader, int location) : base(shader, location) { }
 
-        public void Set(Vector4 value)
+        public void Set(in Vector4 value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.Uniform4(this.location, 1, value.X);
-        }
-
-        public void Set(ref Vector4 value)
-        {
-            Debug.Assert(this.shader.IsActive);
-            GL.Uniform4(this.location, 1, value.X);
+            GL.Uniform4f(this.location, value);
         }
 
         public void Set(float x, float y, float z, float w)
         {
-            Vector4 xyzw = new Vector4(x, y, z, w);
-            this.Set(ref xyzw);
+            Debug.Assert(this.shader.IsActive);
+            GL.Uniform4f(this.location, x, y, z, w);
         }
     }
 
@@ -114,22 +98,16 @@ namespace GJKEPADemo
     {
         public UniformVector3(Shader shader, int location) : base(shader, location) { }
 
-        public void Set(Vector3 value)
+        public void Set(in Vector3 value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.Uniform3(this.location, 1, value.X);
-        }
-
-        public void Set(ref Vector3 value)
-        {
-            Debug.Assert(this.shader.IsActive);
-            GL.Uniform3(this.location, 1, value.X);
+            GL.Uniform3f(this.location, value);
         }
 
         public void Set(float x, float y, float z)
         {
-            Vector3 xyz = new Vector3(x, y, z);
-            this.Set(ref xyz);
+            Debug.Assert(this.shader.IsActive);
+            GL.Uniform3f(this.location, x, y, z);
         }
     }
 
@@ -137,22 +115,16 @@ namespace GJKEPADemo
     {
         public UniformVector2(Shader shader, int location) : base(shader, location) { }
 
-        public void Set(Vector2 value)
+        public void Set(in Vector2 value)
         {
             Debug.Assert(this.shader.IsActive);
-            GL.Uniform2(this.location, 1, value.X);
-        }
-
-        public void Set(ref Vector2 value)
-        {
-            Debug.Assert(this.shader.IsActive);
-            GL.Uniform2(this.location, 1, value.X);
+            GL.Uniform2f(this.location, value);
         }
 
         public void Set(float x, float y)
         {
-            Vector2 xy = new Vector2(x, y);
-            this.Set(ref xy);
+            Debug.Assert(this.shader.IsActive);
+            GL.Uniform2f(this.location, x, y);
         }
     }
 

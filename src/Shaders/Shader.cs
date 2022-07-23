@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics;
 
 namespace GJKEPADemo
 {
@@ -56,15 +57,15 @@ namespace GJKEPADemo
         {
             ShaderProgram = GL.CreateProgram();
 
-            uint fragmentShader = this.CompileShader(this.FragmentShader, ShaderType.FragmentShader);
-            uint vertexShader = this.CompileShader(this.VertexShader, ShaderType.VertexShader);
+            ShaderHandle fragmentShader = this.CompileShader(this.FragmentShader, ShaderType.FragmentShader);
+            ShaderHandle vertexShader = this.CompileShader(this.VertexShader, ShaderType.VertexShader);
 
             GL.AttachShader(ShaderProgram, vertexShader);
             GL.AttachShader(ShaderProgram, fragmentShader);
             GL.LinkProgram(ShaderProgram);
 
             int success = -1;
-            GL.GetProgram(ShaderProgram, ProgramPropertyARB.LinkStatus, ref success);
+            GL.GetProgrami(ShaderProgram, ProgramPropertyARB.LinkStatus, ref success);
 
             if (success == 0)
             {
@@ -85,7 +86,7 @@ namespace GJKEPADemo
     {
         public ReadOnlyDictionary<string, Uniform> Uniforms { get; private set; }
 
-        internal uint ShaderProgram;
+        internal ProgramHandle ShaderProgram;
 
         public void Use()
         {
@@ -98,7 +99,7 @@ namespace GJKEPADemo
             {
                 int active = -1;
                 GL.GetInteger(GetPName.CurrentProgram, ref active);
-                return (active == this.ShaderProgram);
+                return (active == this.ShaderProgram.Handle);
             }
         }
 
@@ -113,7 +114,7 @@ namespace GJKEPADemo
 
             count = length = size = location = -1;
 
-            GL.GetProgram(this.ShaderProgram, ProgramPropertyARB.ActiveUniforms, ref count);
+            GL.GetProgrami(this.ShaderProgram, ProgramPropertyARB.ActiveUniforms, ref count);
 
             for (uint i = 0; i < count; i++)
             {
@@ -146,16 +147,16 @@ namespace GJKEPADemo
             }
         }
 
-        protected uint CompileShader(string code, ShaderType type)
+        protected ShaderHandle CompileShader(string code, ShaderType type)
         {
-            uint shader;
+            ShaderHandle shader;
 
             shader = GL.CreateShader(type);
             GL.ShaderSource(shader, code);
             GL.CompileShader(shader);
 
             int success = -1;
-            GL.GetShader(shader, ShaderParameterName.CompileStatus, ref success);
+            GL.GetShaderi(shader, ShaderParameterName.CompileStatus, ref success);
 
             if (success == 0)
             {

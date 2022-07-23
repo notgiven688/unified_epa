@@ -137,9 +137,9 @@ namespace GJKEPADemo
                 }
                 else
                 {
-                    SupportMap.SupportMapping(ref tri.v1, out JVector p1);
-                    SupportMap.SupportMapping(ref tri.v2, out JVector p2);
-                    SupportMap.SupportMapping(ref tri.v3, out JVector p3);
+                    SupportMap.SupportMapping(tri.v1, out JVector p1);
+                    SupportMap.SupportMapping(tri.v2, out JVector p2);
+                    SupportMap.SupportMapping(tri.v3, out JVector p3);
                     JVector n = (p3 - p1) % (p2 - p1); 
 
                     if (n.LengthSquared() > 1e-24d)
@@ -252,9 +252,9 @@ namespace GJKEPADemo
 
             phong.Alpha.Set(Alpha);
 
-            phong.ViewPosition.Set(ref Showcase.Current.Camera.Position);
-            phong.Projection.Set(ref Showcase.Current.Camera.ProjectionMatrix);
-            phong.View.Set(ref Showcase.Current.Camera.ViewMatrix);
+            phong.ViewPosition.Set(Showcase.Current.Camera.Position);
+            phong.Projection.Set(Showcase.Current.Camera.ProjectionMatrix);
+            phong.View.Set(Showcase.Current.Camera.ViewMatrix);
             phong.Model.Set(this.WorldMatrix);
 
             base.Draw(e);
