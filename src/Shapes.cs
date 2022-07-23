@@ -43,12 +43,12 @@ namespace GJKEPADemo
 
     public interface ISupportMappable
     {
-        void SupportMapping(ref JVector direction, out JVector result);
+        void SupportMapping(in JVector direction, out JVector result);
     }
 
     public static class ShapeHelper
     {
-        public static void SupportLine(ref JVector direction, out JVector result)
+        public static void SupportLine(in JVector direction, out JVector result)
         {
             JVector a = new JVector(0, 0.5d, 0);
             JVector b = new JVector(0, -0.5d, 0);
@@ -60,7 +60,7 @@ namespace GJKEPADemo
             else result = b;
         }
 
-        public static void SupportTriangle(ref JVector direction, out JVector result)
+        public static void SupportTriangle(in JVector direction, out JVector result)
         {
             JVector a = new JVector(0, 0, 1);
             JVector b = new JVector(-1, 0, -1);
@@ -74,7 +74,7 @@ namespace GJKEPADemo
             else result = t2 > t1 ? c : b;
         }
 
-        public static void SupportDisc(ref JVector direction, out JVector result)
+        public static void SupportDisc(in JVector direction, out JVector result)
         {
             result.X = direction.X;
             result.Y = 0;
@@ -84,24 +84,24 @@ namespace GJKEPADemo
             result *= 0.5d;
         }
 
-        public static void SupportSphere(ref JVector direction, out JVector result)
+        public static void SupportSphere(in JVector direction, out JVector result)
         {
             result = direction;
             result.Normalize();
         }
 
-        public static void SupportCone(ref JVector direction, out JVector result)
+        public static void SupportCone(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportDisc(ref direction, out JVector res1);
+            ShapeHelper.SupportDisc(direction, out JVector res1);
             JVector res2 = new JVector(0, 1, 0);
 
-            if (JVector.Dot(ref direction, ref res1) >= JVector.Dot(ref direction, ref res2)) result = res1;
+            if (JVector.Dot(direction, res1) >= JVector.Dot(direction, res2)) result = res1;
             else result = res2;
 
             result.Y -= 0.5d;
         }
 
-        public static void SupportCube(ref JVector direction, out JVector result)
+        public static void SupportCube(in JVector direction, out JVector result)
         {
             result.X = Math.Sign(direction.X);
             result.Y = Math.Sign(direction.Y);
@@ -112,10 +112,10 @@ namespace GJKEPADemo
     [Shape("Cylinder")]
     public class CylinderShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportDisc(ref direction, out JVector res1);
-            ShapeHelper.SupportLine(ref direction, out JVector res2);
+            ShapeHelper.SupportDisc(direction, out JVector res1);
+            ShapeHelper.SupportLine(direction, out JVector res2);
             result = res1 + res2;
         }
     }
@@ -123,9 +123,9 @@ namespace GJKEPADemo
     [Shape("Cube")]
     public class CubeShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportCube(ref direction, out result);
+            ShapeHelper.SupportCube(direction, out result);
             result *= 0.5d;
         }
     }
@@ -133,10 +133,10 @@ namespace GJKEPADemo
     [Shape("Line Segment")]
     public class LineShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportLine(ref direction, out JVector res1);
-            ShapeHelper.SupportSphere(ref direction, out JVector res2);
+            ShapeHelper.SupportLine(direction, out JVector res1);
+            ShapeHelper.SupportSphere(direction, out JVector res2);
             result = res1 + res2 * 0.01d;
         }
     }
@@ -144,10 +144,10 @@ namespace GJKEPADemo
     [Shape("Triangle")]
     public class TriangleShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportTriangle(ref direction, out JVector res1);
-            ShapeHelper.SupportSphere(ref direction, out JVector res2);
+            ShapeHelper.SupportTriangle(direction, out JVector res1);
+            ShapeHelper.SupportSphere(direction, out JVector res2);
             result = res1 + res2 * 0.01d;
         }
     }
@@ -155,9 +155,9 @@ namespace GJKEPADemo
     [Shape("Sphere")]
     public class SphereShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportSphere(ref direction, out result);
+            ShapeHelper.SupportSphere(direction, out result);
             result *= 0.5d;
         }
     }
@@ -165,12 +165,12 @@ namespace GJKEPADemo
     [Shape("Ellipsoid")]
     public class EllipsoidShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
             // ellipsoid == affine transformation of a sphere
             JVector dir = direction;
             dir.X *= 0.5f; dir.Y *= 0.8f; dir.Z *= 0.2f;
-            ShapeHelper.SupportSphere(ref dir, out result);
+            ShapeHelper.SupportSphere(dir, out result);
             result.X *= 0.5f; result.Y *= 0.8f; result.Z *= 0.2f;
         }
     }
@@ -178,10 +178,10 @@ namespace GJKEPADemo
     [Shape("Capped Cone")]
     public class CappedConeShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportDisc(ref direction, out JVector res1);
-            ShapeHelper.SupportCone(ref direction, out JVector res2);
+            ShapeHelper.SupportDisc(direction, out JVector res1);
+            ShapeHelper.SupportCone(direction, out JVector res2);
             result = (res1 + res2) * 0.5d;
         }
     }
@@ -189,10 +189,10 @@ namespace GJKEPADemo
     [Shape("Capsule")]
     public class CapsuleShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportLine(ref direction, out JVector res1);
-            ShapeHelper.SupportSphere(ref direction, out JVector res2);
+            ShapeHelper.SupportLine(direction, out JVector res1);
+            ShapeHelper.SupportSphere(direction, out JVector res2);
             result = (res1 + res2 * 0.5d) * 0.8d;
         }
     }
@@ -200,9 +200,9 @@ namespace GJKEPADemo
     [Shape("Cone")]
     public class ConeShape : ISupportMappable
     {
-        public void SupportMapping(ref JVector direction, out JVector result)
+        public void SupportMapping(in JVector direction, out JVector result)
         {
-            ShapeHelper.SupportCone(ref direction, out result);
+            ShapeHelper.SupportCone(direction, out result);
         }
 
     }

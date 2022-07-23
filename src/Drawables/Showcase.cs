@@ -140,7 +140,7 @@ namespace GJKEPADemo
             double separation;
 
             bool success = GJKEPA.Detect(PrimitiveLeft.SupportMap, PrimitiveRight.SupportMap,
-                ref orientLeft, ref orientRight, ref posLeft, ref posRight,
+                orientLeft, orientRight, posLeft, posRight,
                 out pl, out pr, out separation);
 
             if (success)

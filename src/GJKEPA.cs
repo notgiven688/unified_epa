@@ -39,38 +39,38 @@ namespace GJKEPADemo
             public JMatrix OrientationA, OrientationB;
             public JVector PositionA, PositionB;
 
-            private void SupportMapTransformedA(ref JVector direction, out JVector result)
+            private void SupportMapTransformedA(in JVector direction, out JVector result)
             {
-                JVector.TransposedTransform(ref direction, ref OrientationA, out JVector tmp);
-                SupportA.SupportMapping(ref tmp, out result);
-                JVector.Transform(ref result, ref OrientationA, out result);
-                JVector.Add(ref result, ref PositionA, out result);
+                JVector.TransposedTransform(direction, OrientationA, out JVector tmp);
+                SupportA.SupportMapping(tmp, out result);
+                JVector.Transform(result, OrientationA, out result);
+                JVector.Add(result, PositionA, out result);
             }
 
-            private void SupportMapTransformedB(ref JVector direction, out JVector result)
+            private void SupportMapTransformedB(in JVector direction, out JVector result)
             {
-                JVector.TransposedTransform(ref direction, ref OrientationB, out JVector tmp);
-                SupportB.SupportMapping(ref tmp, out result);
-                JVector.Transform(ref result, ref OrientationB, out result);
-                JVector.Add(ref result, ref PositionB, out result);
+                JVector.TransposedTransform(direction, OrientationB, out JVector tmp);
+                SupportB.SupportMapping(tmp, out result);
+                JVector.Transform(result, OrientationB, out result);
+                JVector.Add(result, PositionB, out result);
             }
 
-            public void Support(ref JVector direction, out JVector vA, out JVector vB, out JVector v)
+            public void Support(in JVector direction, out JVector vA, out JVector vB, out JVector v)
             {
-                JVector.Negate(ref direction, out JVector tmp);
-                SupportMapTransformedA(ref tmp, out vA);
-                SupportMapTransformedB(ref direction, out vB);
-                JVector.Subtract(ref vA, ref vB, out v);
+                JVector.Negate(direction, out JVector tmp);
+                SupportMapTransformedA(tmp, out vA);
+                SupportMapTransformedB(direction, out vB);
+                JVector.Subtract(vA, vB, out v);
             }
 
-            public void SupportMapping(ref JVector direction, out JVector result)
+            public void SupportMapping(in JVector direction, out JVector result)
             {
-                this.Support(ref direction, out _, out _, out result);
+                this.Support(direction, out _, out _, out result);
             }
 
             public void SupportCenter(out JVector center)
             {
-                JVector.Subtract(ref PositionA, ref PositionB, out center);
+                JVector.Subtract(PositionA, PositionB, out center);
             }
         }
 
@@ -156,25 +156,25 @@ namespace GJKEPADemo
                 else Head = triangle;
             }
 
-            private void CalcPoint(int triangle, ref JVector barycentric, out JVector result)
+            private void CalcPoint(int triangle, in JVector barycentric, out JVector result)
             {
                 ref Triangle t = ref Triangles[triangle];
-                JMatrix m = new JMatrix(ref Vertices[t.A], ref Vertices[t.B], ref Vertices[t.C]);
-                JVector.Transform(ref barycentric, ref m, out result);
+                JMatrix m = new JMatrix(Vertices[t.A], Vertices[t.B], Vertices[t.C]);
+                JVector.Transform(barycentric, m, out result);
             }
 
-            private void CalcPointA(int triangle, ref JVector barycentric, out JVector result)
+            private void CalcPointA(int triangle, in JVector barycentric, out JVector result)
             {
                 ref Triangle t = ref Triangles[triangle];
-                JMatrix m = new JMatrix(ref VerticesA[t.A], ref VerticesA[t.B], ref VerticesA[t.C]);
-                JVector.Transform(ref barycentric, ref m, out result);
+                JMatrix m = new JMatrix(VerticesA[t.A], VerticesA[t.B], VerticesA[t.C]);
+                JVector.Transform(barycentric, m, out result);
             }
 
-            private void CalcPointB(int triangle, ref JVector barycentric, out JVector result)
+            private void CalcPointB(int triangle, in JVector barycentric, out JVector result)
             {
                 ref Triangle t = ref Triangles[triangle];
-                JMatrix m = new JMatrix(ref VerticesB[t.A], ref VerticesB[t.B], ref VerticesB[t.C]);
-                JVector.Transform(ref barycentric, ref m, out result);
+                JMatrix m = new JMatrix(VerticesB[t.A], VerticesB[t.B], VerticesB[t.C]);
+                JVector.Transform(barycentric, m, out result);
             }
 
             public void CalcBarycentric(int triangle, out JVector result)
@@ -185,14 +185,14 @@ namespace GJKEPADemo
                 JVector c = Vertices[tri.C];
 
                 JVector u, v, tmp;
-                JVector.Subtract(ref a, ref b, out u);
-                JVector.Subtract(ref a, ref c, out v);
+                JVector.Subtract(a, b, out u);
+                JVector.Subtract(a, c, out v);
 
                 double t = tri.NormalSq;
-                JVector.Cross(ref u, ref a, out tmp);
-                double gamma = JVector.Dot(ref tmp, ref tri.Normal) / t;
-                JVector.Cross(ref a, ref v, out tmp);
-                double beta = JVector.Dot(ref tmp, ref tri.Normal) / t;
+                JVector.Cross(u, a, out tmp);
+                double gamma = JVector.Dot(tmp, tri.Normal) / t;
+                JVector.Cross(a, v, out tmp);
+                double beta = JVector.Dot(tmp, tri.Normal) / t;
                 double alpha = 1.0d - gamma - beta;
 
                 result.X = alpha; result.Y = beta; result.Z = gamma;
@@ -211,14 +211,14 @@ namespace GJKEPADemo
                 // [W. Heidrich, Journal of Graphics, GPU, and Game Tools,Volume 10, Issue 3, 2005.]
 
                 JVector u, v, w, tmp;
-                JVector.Subtract(ref a, ref b, out u);
-                JVector.Subtract(ref a, ref c, out v);
+                JVector.Subtract(a, b, out u);
+                JVector.Subtract(a, c, out v);
 
                 double t = tri.NormalSq;
-                JVector.Cross(ref u, ref a, out tmp);
-                double gamma = JVector.Dot(ref tmp, ref tri.Normal) / t;
-                JVector.Cross(ref a, ref v, out tmp);
-                double beta = JVector.Dot(ref tmp, ref tri.Normal) / t;
+                JVector.Cross(u, a, out tmp);
+                double gamma = JVector.Dot(tmp, tri.Normal) / t;
+                JVector.Cross(a, v, out tmp);
+                double beta = JVector.Dot(tmp, tri.Normal) / t;
                 double alpha = 1.0d - gamma - beta;
 
                 // Clamp the projected barycentric coordinates to lie within the triangle,
@@ -229,7 +229,7 @@ namespace GJKEPADemo
 
                 if (alpha >= 0.0d && beta < 0.0d)
                 {
-                    t = JVector.Dot(ref a, ref u);
+                    t = JVector.Dot(a, u);
                     if ((gamma < 0.0d) && (t > 0.0d))
                     {
                         beta = Math.Min(1.0d, t / u.LengthSquared());
@@ -238,15 +238,15 @@ namespace GJKEPADemo
                     }
                     else
                     {
-                        gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(ref a, ref v) / v.LengthSquared()));
+                        gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(a, v) / v.LengthSquared()));
                         alpha = 1.0d - gamma;
                         beta = 0.0d;
                     }
                 }
                 else if (beta >= 0.0d && gamma < 0.0d)
                 {
-                    JVector.Subtract(ref b, ref c, out w);
-                    t = JVector.Dot(ref b, ref w);
+                    JVector.Subtract(b, c, out w);
+                    t = JVector.Dot(b, w);
                     if ((alpha < 0.0d) && (t > 0.0d))
                     {
                         gamma = Math.Min(1.0d, t / w.LengthSquared());
@@ -255,15 +255,15 @@ namespace GJKEPADemo
                     }
                     else
                     {
-                        alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(ref b, ref u) / u.LengthSquared()));
+                        alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(b, u) / u.LengthSquared()));
                         beta = 1.0d - alpha;
                         gamma = 0.0d;
                     }
                 }
                 else if (gamma >= 0.0d && alpha < 0.0d)
                 {
-                    JVector.Subtract(ref b, ref c, out w);
-                    t = -JVector.Dot(ref c, ref v);
+                    JVector.Subtract(b, c, out w);
+                    t = -JVector.Dot(c, v);
                     if ((beta < 0.0d) && (t > 0.0d))
                     {
                         alpha = Math.Min(1.0d, t / v.LengthSquared());
@@ -272,7 +272,7 @@ namespace GJKEPADemo
                     }
                     else
                     {
-                        beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(ref c, ref w) / w.LengthSquared()));
+                        beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(c, w) / w.LengthSquared()));
                         gamma = 1.0d - beta;
                         alpha = 0.0d;
                     }
@@ -288,9 +288,9 @@ namespace GJKEPADemo
                 triangle.Next = triangle.Prev = -1;
 
                 JVector u, v;
-                JVector.Subtract(ref Vertices[a], ref Vertices[b], out u);
-                JVector.Subtract(ref Vertices[a], ref Vertices[c], out v);
-                JVector.Cross(ref u, ref v, out triangle.Normal);
+                JVector.Subtract(Vertices[a], Vertices[b], out u);
+                JVector.Subtract(Vertices[a], Vertices[c], out v);
+                JVector.Cross(u, v, out triangle.Normal);
                 triangle.NormalSq = triangle.Normal.LengthSquared();
 
                 if (triangle.NormalSq < NumericEpsilon * NumericEpsilon)
@@ -302,14 +302,14 @@ namespace GJKEPADemo
                 {
                     if(OriginEnclosed)
                     {
-                        double delta = JVector.Dot(ref triangle.Normal,ref Vertices[a]);
-                        JVector.Multiply(ref triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
+                        double delta = JVector.Dot(triangle.Normal, Vertices[a]);
+                        JVector.Multiply(triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
                         triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                     }
                     else
                     {
                         CalcBarycentricProject(tPointer, out JVector bc);
-                        CalcPoint(tPointer, ref bc, out triangle.ClosestToOrigin);
+                        CalcPoint(tPointer, bc, out triangle.ClosestToOrigin);
                         triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                     }
                 }
@@ -330,10 +330,10 @@ namespace GJKEPADemo
             {
                 vPointer = 3;
 
-                JVector.Add(ref v0, ref position, out Vertices[0]);
-                JVector.Add(ref v1, ref position, out Vertices[1]);
-                JVector.Add(ref v2, ref position, out Vertices[2]);
-                JVector.Add(ref v3, ref position, out Vertices[3]);
+                Vertices[0] = v0 + position;
+                Vertices[1] = v1 + position;
+                Vertices[2] = v2 + position;
+                Vertices[3] = v3 + position;
 
                 int t1 = CreateTriangle(0, 2, 1);
                 int t2 = CreateTriangle(0, 1, 3);
@@ -368,7 +368,7 @@ namespace GJKEPADemo
                     if (OriginEnclosed) searchDir.Negate();
 
                     vPointer++;
-                    MKD.Support(ref searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
+                    MKD.Support(searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
 
                     // Search for a triangle on the existing polytope which is "lighted" by the new support point.
                     // The (double-linked) list of triangles is sorted by their distance to the origin. This allows
@@ -394,7 +394,7 @@ namespace GJKEPADemo
                     //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
                     //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
 
-                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(ref Vertices[vPointer], ref Triangles[Head].ClosestToOrigin);
+                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(Vertices[vPointer], Triangles[Head].ClosestToOrigin);
                     bool tc = deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq;
 
                     // Check if new support point is in the set of already found points.
@@ -423,8 +423,8 @@ namespace GJKEPADemo
                         if (OriginEnclosed) CalcBarycentric(Head, out bc);
                         else CalcBarycentricProject(Head, out bc);
 
-                        CalcPointA(Head, ref bc, out point1);
-                        CalcPointB(Head, ref bc, out point2);
+                        CalcPointA(Head, bc, out point1);
+                        CalcPointB(Head, bc, out point2);
                         return true;
                     }
 
@@ -441,7 +441,7 @@ namespace GJKEPADemo
                         for (; i < ntPointer; i++)
                         {
                             ref Triangle t = ref Triangles[newTriangles[i]];
-                            double dd = JVector.Dot(ref t.Normal, ref Vertices[t.A]);
+                            double dd = JVector.Dot(t.Normal, Vertices[t.A]);
                             if (dd < 0.0d) break;
                         }
                         OriginEnclosed = (i == ntPointer);
@@ -492,8 +492,8 @@ namespace GJKEPADemo
             private bool IsLit(int candidate, int w)
             {
                 ref Triangle tr = ref Triangles[candidate];
-                JVector.Subtract(ref Vertices[w], ref Vertices[tr.A], out JVector deltaA);
-                return JVector.Dot(ref deltaA, ref tr.Normal) > 0;
+                JVector deltaA = Vertices[w] - Vertices[tr.A];
+                return JVector.Dot(deltaA, tr.Normal) > 0;
             }
 
             private void ExpandHorizon(int candidate, int w)
@@ -556,8 +556,8 @@ namespace GJKEPADemo
         public static GJKEPASolver epaSolver;
 
         public static bool Detect(ISupportMappable supportA, ISupportMappable supportB,
-         ref JMatrix orientationA, ref JMatrix orientationB,
-         ref JVector positionA, ref JVector positionB,
+         in JMatrix orientationA, in JMatrix orientationB,
+         in JVector positionA, in JVector positionB,
          out JVector pointA, out JVector pointB, out double separation)
         {
             if (epaSolver == null) epaSolver = new GJKEPASolver();

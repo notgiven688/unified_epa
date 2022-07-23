@@ -25,6 +25,7 @@ using System.Collections.Generic;
 
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Graphics;
 
 using Drawing = System.Drawing;
 using OpenTK.Windowing.Common;
@@ -37,8 +38,9 @@ namespace GJKEPADemo
         private List<uint> indices = new List<uint>();
 
         private QuadShader shader;
-        private uint VBO, EBO, VAO;
-        private uint texture;
+        private VertexArrayHandle VAO;
+        private BufferHandle VBO, EBO;
+        private TextureHandle texture;
 
         private Matrix4 worldMatrix = Matrix4.Identity;
 
@@ -57,7 +59,7 @@ namespace GJKEPADemo
 
         int textureSize = 256;
 
-        private uint CreateTexture(TextureUnit unit)
+        private TextureHandle CreateTexture(TextureUnit unit)
         {
             Drawing.Graphics graphics;
             Drawing.Bitmap bitmap;
@@ -96,16 +98,16 @@ namespace GJKEPADemo
                 Drawing.Imaging.ImageLockMode.ReadOnly,
                 Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-            uint txt = GL.GenTexture();
+            TextureHandle txt = GL.GenTexture();
 
             GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.Texture2d, txt);
 
-            GL.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
-            GL.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
             GL.TexImage2D(TextureTarget.Texture2d, 0, (int)OpenTK.Graphics.OpenGL.PixelFormat.Rgba, data.Width, data.Height, 0,
                           OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, data.Scan0);

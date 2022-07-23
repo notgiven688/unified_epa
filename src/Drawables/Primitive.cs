@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
@@ -30,7 +31,8 @@ namespace GJKEPADemo
 {
     public class Primitive : IDrawableComponent, IDisposable
     {
-        private uint VBO, EBO, VAO;
+        private BufferHandle VBO, EBO;
+        private VertexArrayHandle VAO;
 
         private List<float> vertices = new List<float>();
         private List<uint> indices = new List<uint>();

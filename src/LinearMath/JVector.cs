@@ -104,7 +104,7 @@ namespace GJKEPADemo
         }
         #endregion
 
-        public static JVector operator -(JVector value)
+        public static JVector operator -(in JVector value)
         {
             JVector vector;
             vector.X = -value.X;
@@ -199,7 +199,7 @@ namespace GJKEPADemo
         /// <param name="value2">The second value.</param>
         /// <returns>Returns true if both values are equal, otherwise false.</returns>
         #region public static bool operator ==(JVector value1, JVector value2)
-        public static bool operator ==(JVector value1, JVector value2)
+        public static bool operator ==(in JVector value1, in JVector value2)
         {
             return (((value1.X == value2.X) && (value1.Y == value2.Y)) && (value1.Z == value2.Z));
         }
@@ -212,7 +212,7 @@ namespace GJKEPADemo
         /// <param name="value2">The second value.</param>
         /// <returns>Returns false if both values are equal, otherwise true.</returns>
         #region public static bool operator !=(JVector value1, JVector value2)
-        public static bool operator !=(JVector value1, JVector value2)
+        public static bool operator !=(in JVector value1, in JVector value2)
         {
             if ((value1.X == value2.X) && (value1.Y == value2.Y))
             {
@@ -230,10 +230,9 @@ namespace GJKEPADemo
         /// <returns>A vector with the minimum x,y and z values of both vectors.</returns>
         #region public static JVector Min(JVector value1, JVector value2)
 
-        public static JVector Min(JVector value1, JVector value2)
+        public static JVector Min(in JVector value1, in JVector value2)
         {
-            JVector result;
-            JVector.Min(ref value1, ref value2, out result);
+            JVector.Min(value1, value2, out JVector result);
             return result;
         }
 
@@ -244,7 +243,7 @@ namespace GJKEPADemo
         /// <param name="value2">The second value.</param>
         /// <param name="result">A vector with the minimum x,y and z values of both vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Min(ref JVector value1, ref JVector value2, out JVector result)
+        public static void Min(in JVector value1, in JVector value2, out JVector result)
         {
             result.X = (value1.X < value2.X) ? value1.X : value2.X;
             result.Y = (value1.Y < value2.Y) ? value1.Y : value2.Y;
@@ -259,10 +258,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second value.</param>
         /// <returns>A vector with the maximum x,y and z values of both vectors.</returns>
         #region public static JVector Max(JVector value1, JVector value2)
-        public static JVector Max(JVector value1, JVector value2)
+        public static JVector Max(in JVector value1, in JVector value2)
         {
-            JVector result;
-            JVector.Max(ref value1, ref value2, out result);
+            JVector.Max(value1, value2, out JVector result);
             return result;
         }
 
@@ -273,7 +271,7 @@ namespace GJKEPADemo
         /// <param name="value2">The second value.</param>
         /// <param name="result">A vector with the maximum x,y and z values of both vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Max(ref JVector value1, ref JVector value2, out JVector result)
+        public static void Max(in JVector value1, in JVector value2, out JVector result)
         {
             result.X = (value1.X > value2.X) ? value1.X : value2.X;
             result.Y = (value1.Y > value2.Y) ? value1.Y : value2.Y;
@@ -314,8 +312,7 @@ namespace GJKEPADemo
         #region public static JVector Transform(JVector position, JMatrix matrix)
         public static JVector Transform(JVector position, JMatrix matrix)
         {
-            JVector result;
-            JVector.Transform(ref position, ref matrix, out result);
+            JVector.Transform(position, matrix, out JVector result);
             return result;
         }
 
@@ -326,7 +323,7 @@ namespace GJKEPADemo
         /// <param name="matrix">The transform matrix.</param>
         /// <param name="result">The transformed vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Transform(ref JVector position, ref JMatrix matrix, out JVector result)
+        public static void Transform(in JVector position, in JMatrix matrix, out JVector result)
         {
             double num0 = ((position.X * matrix.M11) + (position.Y * matrix.M21)) + (position.Z * matrix.M31);
             double num1 = ((position.X * matrix.M12) + (position.Y * matrix.M22)) + (position.Z * matrix.M32);
@@ -344,7 +341,7 @@ namespace GJKEPADemo
         /// <param name="matrix">The transform matrix.</param>
         /// <param name="result">The transformed vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void TransposedTransform(ref JVector position, ref JMatrix matrix, out JVector result)
+        public static void TransposedTransform(in JVector position, in JMatrix matrix, out JVector result)
         {
             double num0 = ((position.X * matrix.M11) + (position.Y * matrix.M12)) + (position.Z * matrix.M13);
             double num1 = ((position.X * matrix.M21) + (position.Y * matrix.M22)) + (position.Z * matrix.M23);
@@ -357,26 +354,15 @@ namespace GJKEPADemo
         #endregion
 
         /// <summary>
-        /// Calculates the dot product of two vectors.
-        /// </summary>
-        /// <param name="vector1">The first vector.</param>
-        /// <param name="vector2">The second vector.</param>
-        /// <returns>Returns the dot product of both vectors.</returns>
-        #region public static double Dot(JVector vector1, JVector vector2)
-        public static double Dot(JVector vector1, JVector vector2)
-        {
-            return JVector.Dot(ref vector1, ref vector2);
-        }
-
-
-        /// <summary>
         /// Calculates the dot product of both vectors.
         /// </summary>
         /// <param name="vector1">The first vector.</param>
         /// <param name="vector2">The second vector.</param>
         /// <returns>Returns the dot product of both vectors.</returns>
+        #region public static double Dot(JVector vector1, JVector vector2)
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double Dot(ref JVector vector1, ref JVector vector2)
+        public static double Dot(in JVector vector1, in JVector vector2)
         {
             return ((vector1.X * vector2.X) + (vector1.Y * vector2.Y)) + (vector1.Z * vector2.Z);
         }
@@ -389,10 +375,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second vector.</param>
         /// <returns>The sum of both vectors.</returns>
         #region public static void Add(JVector value1, JVector value2)
-        public static JVector Add(JVector value1, JVector value2)
+        public static JVector Add(in JVector value1, in JVector value2)
         {
-            JVector result;
-            JVector.Add(ref value1, ref value2, out result);
+            JVector.Add(value1, value2, out JVector result);
             return result;
         }
 
@@ -403,7 +388,7 @@ namespace GJKEPADemo
         /// <param name="value2">The second vector.</param>
         /// <param name="result">The sum of both vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(ref JVector value1, ref JVector value2, out JVector result)
+        public static void Add(in JVector value1, in JVector value2, out JVector result)
         {
             result.X = value1.X + value2.X;
             result.Y = value1.Y + value2.Y;
@@ -412,27 +397,15 @@ namespace GJKEPADemo
         #endregion
 
         /// <summary>
-        /// Subtracts two vectors.
-        /// </summary>
-        /// <param name="value1">The first vector.</param>
-        /// <param name="value2">The second vector.</param>
-        /// <returns>The difference of both vectors.</returns>
-        #region public static JVector Subtract(JVector value1, JVector value2)
-        public static JVector Subtract(JVector value1, JVector value2)
-        {
-            JVector result;
-            JVector.Subtract(ref value1, ref value2, out result);
-            return result;
-        }
-
-        /// <summary>
         /// Subtracts to vectors.
         /// </summary>
         /// <param name="value1">The first vector.</param>
         /// <param name="value2">The second vector.</param>
         /// <param name="result">The difference of both vectors.</param>
+        #region public static JVector Subtract(JVector value1, JVector value2)
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Subtract(ref JVector value1, ref JVector value2, out JVector result)
+        public static void Subtract(in JVector value1, in JVector value2, out JVector result)
         {
             result.X = value1.X - value2.X;
             result.Y = value1.Y - value2.Y;
@@ -447,10 +420,9 @@ namespace GJKEPADemo
         /// <param name="vector2">The second vector.</param>
         /// <returns>The cross product of both vectors.</returns>
         #region public static JVector Cross(JVector vector1, JVector vector2)
-        public static JVector Cross(JVector vector1, JVector vector2)
+        public static JVector Cross(in JVector vector1, in JVector vector2)
         {
-            JVector result;
-            JVector.Cross(ref vector1, ref vector2, out result);
+            JVector.Cross(vector1, vector2, out JVector result);
             return result;
         }
 
@@ -461,7 +433,7 @@ namespace GJKEPADemo
         /// <param name="vector2">The second vector.</param>
         /// <param name="result">The cross product of both vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Cross(ref JVector vector1, ref JVector vector2, out JVector result)
+        public static void Cross(in JVector vector1, in JVector vector2, out JVector result)
         {
             double num3 = (vector1.Y * vector2.Z) - (vector1.Z * vector2.Y);
             double num2 = (vector1.Z * vector2.X) - (vector1.X * vector2.Z);
@@ -499,10 +471,9 @@ namespace GJKEPADemo
         /// </summary>
         /// <param name="value">The vector to inverse.</param>
         /// <returns>The negated vector.</returns>
-        public static JVector Negate(JVector value)
+        public static JVector Negate(in JVector value)
         {
-            JVector result;
-            JVector.Negate(ref value, out result);
+            JVector.Negate(value, out JVector result);
             return result;
         }
 
@@ -512,7 +483,7 @@ namespace GJKEPADemo
         /// <param name="value">The vector to inverse.</param>
         /// <param name="result">The negated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Negate(ref JVector value, out JVector result)
+        public static void Negate(in JVector value, out JVector result)
         {
             double num0 = -value.X;
             double num1 = -value.Y;
@@ -530,10 +501,9 @@ namespace GJKEPADemo
         /// <param name="value">The vector which should be normalized.</param>
         /// <returns>A normalized vector.</returns>
         #region public static JVector Normalize(JVector value)
-        public static JVector Normalize(JVector value)
+        public static JVector Normalize(in JVector value)
         {
-            JVector result;
-            JVector.Normalize(ref value, out result);
+            JVector.Normalize(value, out JVector result);
             return result;
         }
 
@@ -554,7 +524,7 @@ namespace GJKEPADemo
         /// </summary>
         /// <param name="value">The vector which should be normalized.</param>
         /// <param name="result">A normalized vector.</param>
-        public static void Normalize(ref JVector value, out JVector result)
+        public static void Normalize(in JVector value, out JVector result)
         {
             double num2 = ((value.X * value.X) + (value.Y * value.Y)) + (value.Z * value.Z);
             double num = 1f / ((double)Math.Sqrt((double)num2));
@@ -619,10 +589,9 @@ namespace GJKEPADemo
         /// <param name="scaleFactor">The scale factor.</param>
         /// <returns>Returns the multiplied vector.</returns>
         #region public static JVector Multiply(JVector value1, double scaleFactor)
-        public static JVector Multiply(JVector value1, double scaleFactor)
+        public static JVector Multiply(in JVector value1, double scaleFactor)
         {
-            JVector result;
-            JVector.Multiply(ref value1, scaleFactor, out result);
+            JVector.Multiply(value1, scaleFactor, out JVector result);
             return result;
         }
 
@@ -632,7 +601,7 @@ namespace GJKEPADemo
         /// <param name="value1">The vector to multiply.</param>
         /// <param name="scaleFactor">The scale factor.</param>
         /// <param name="result">Returns the multiplied vector.</param>
-        public static void Multiply(ref JVector value1, double scaleFactor, out JVector result)
+        public static void Multiply(in JVector value1, double scaleFactor, out JVector result)
         {
             result.X = value1.X * scaleFactor;
             result.Y = value1.Y * scaleFactor;
@@ -647,9 +616,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second vector.</param>
         /// <returns>Returns the cross product of both.</returns>
         #region public static JVector operator %(JVector value1, JVector value2)
-        public static JVector operator %(JVector value1, JVector value2)
+        public static JVector operator %(in JVector value1, in JVector value2)
         {
-            JVector result; JVector.Cross(ref value1, ref value2, out result);
+            JVector.Cross(value1, value2, out JVector result);
             return result;
         }
         #endregion
@@ -661,17 +630,16 @@ namespace GJKEPADemo
         /// <param name="value2">The second vector.</param>
         /// <returns>Returns the dot product of both.</returns>
         #region public static double operator *(JVector value1, JVector value2)
-        public static double operator *(JVector value1, JVector value2)
+        public static double operator *(in JVector value1, in JVector value2)
         {
-            return JVector.Dot(ref value1, ref value2);
+            return JVector.Dot(value1, value2);
         }
         #endregion
 
 
-        public static JVector operator /(JVector value1, double value2)
+        public static JVector operator /(in JVector value1, double value2)
         {
-            JVector result;
-            JVector.Multiply(ref value1, 1.0d / value2, out result);
+            JVector.Multiply(value1, 1.0d / value2, out JVector result);
             return result;
         }
 
@@ -682,10 +650,9 @@ namespace GJKEPADemo
         /// <param name="value2">The scale factor.</param>
         /// <returns>Returns the scaled vector.</returns>
         #region public static JVector operator *(JVector value1, double value2)
-        public static JVector operator *(JVector value1, double value2)
+        public static JVector operator *(in JVector value1, double value2)
         {
-            JVector result;
-            JVector.Multiply(ref value1, value2, out result);
+            JVector.Multiply(value1, value2, out JVector result);
             return result;
         }
         #endregion
@@ -697,10 +664,9 @@ namespace GJKEPADemo
         /// <param name="value1">The scale factor.</param>
         /// <returns>Returns the scaled vector.</returns>
         #region public static JVector operator *(double value1, JVector value2)
-        public static JVector operator *(double value1, JVector value2)
+        public static JVector operator *(double value1, in JVector value2)
         {
-            JVector result;
-            JVector.Multiply(ref value2, value1, out result);
+            JVector.Multiply(value2, value1, out JVector result);
             return result;
         }
         #endregion
@@ -714,7 +680,7 @@ namespace GJKEPADemo
         #region public static JVector operator -(JVector value1, JVector value2)
         public static JVector operator -(JVector value1, JVector value2)
         {
-            JVector result; JVector.Subtract(ref value1, ref value2, out result);
+            JVector.Subtract(value1, value2, out JVector result);
             return result;
         }
         #endregion
@@ -726,9 +692,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second vector.</param>
         /// <returns>The sum of both vectors.</returns>
         #region public static JVector operator +(JVector value1, JVector value2)
-        public static JVector operator +(JVector value1, JVector value2)
+        public static JVector operator +(in JVector value1, in JVector value2)
         {
-            JVector result; JVector.Add(ref value1, ref value2, out result);
+            JVector.Add(value1, value2, out JVector result);
             return result;
         }
         #endregion

@@ -219,7 +219,7 @@ namespace GJKEPADemo
             this.M33 = m33;
         }
 
-        public JMatrix(ref JVector row1, ref JVector row2, ref JVector row3)
+        public JMatrix(in JVector row1, in JVector row2, in JVector row3)
         {
             this.M11 = row1.X;
             this.M12 = row1.Y;
@@ -251,10 +251,10 @@ namespace GJKEPADemo
         /// <param name="matrix2">The second matrix.</param>
         /// <returns>The product of both matrices.</returns>
         #region public static JMatrix Multiply(JMatrix matrix1, JMatrix matrix2)
-        public static JMatrix Multiply(JMatrix matrix1, JMatrix matrix2)
+        public static JMatrix Multiply(in JMatrix matrix1, in JMatrix matrix2)
         {
             JMatrix result;
-            JMatrix.Multiply(ref matrix1, ref matrix2, out result);
+            JMatrix.Multiply(matrix1, matrix2, out result);
             return result;
         }
 
@@ -265,7 +265,7 @@ namespace GJKEPADemo
         /// <param name="matrix2">The second matrix.</param>
         /// <param name="result">The product of both matrices.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(ref JMatrix matrix1, ref JMatrix matrix2, out JMatrix result)
+        public static void Multiply(in JMatrix matrix1, in JMatrix matrix2, out JMatrix result)
         {
             double num0 = ((matrix1.M11 * matrix2.M11) + (matrix1.M12 * matrix2.M21)) + (matrix1.M13 * matrix2.M31);
             double num1 = ((matrix1.M11 * matrix2.M12) + (matrix1.M12 * matrix2.M22)) + (matrix1.M13 * matrix2.M32);
@@ -296,10 +296,10 @@ namespace GJKEPADemo
         /// <param name="matrix2">The second matrix.</param>
         /// <returns>The sum of both matrices.</returns>
         #region public static JMatrix Add(JMatrix matrix1, JMatrix matrix2)
-        public static JMatrix Add(JMatrix matrix1, JMatrix matrix2)
+        public static JMatrix Add(in JMatrix matrix1, in JMatrix matrix2)
         {
             JMatrix result;
-            JMatrix.Add(ref matrix1, ref matrix2, out result);
+            JMatrix.Add(in matrix1, in matrix2, out result);
             return result;
         }
 
@@ -310,7 +310,7 @@ namespace GJKEPADemo
         /// <param name="matrix2">The second matrix.</param>
         /// <param name="result">The sum of both matrices.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(ref JMatrix matrix1, ref JMatrix matrix2, out JMatrix result)
+        public static void Add(in JMatrix matrix1, in JMatrix matrix2, out JMatrix result)
         {
             result.M11 = matrix1.M11 + matrix2.M11;
             result.M12 = matrix1.M12 + matrix2.M12;
@@ -322,6 +322,26 @@ namespace GJKEPADemo
             result.M32 = matrix1.M32 + matrix2.M32;
             result.M33 = matrix1.M33 + matrix2.M33;
         }
+
+        /// <summary>
+        /// Matrices are subtracted.
+        /// </summary>
+        /// <param name="matrix1">The first matrix.</param>
+        /// <param name="matrix2">The second matrix.</param>
+        /// <param name="result">The difference of both matrices.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Subtract(in JMatrix matrix1, in JMatrix matrix2, out JMatrix result)
+        {
+            result.M11 = matrix1.M11 - matrix2.M11;
+            result.M12 = matrix1.M12 - matrix2.M12;
+            result.M13 = matrix1.M13 - matrix2.M13;
+            result.M21 = matrix1.M21 - matrix2.M21;
+            result.M22 = matrix1.M22 - matrix2.M22;
+            result.M23 = matrix1.M23 - matrix2.M23;
+            result.M31 = matrix1.M31 - matrix2.M31;
+            result.M32 = matrix1.M32 - matrix2.M32;
+            result.M33 = matrix1.M33 - matrix2.M33;
+        }
         #endregion
 
         /// <summary>
@@ -332,8 +352,7 @@ namespace GJKEPADemo
         #region public static JMatrix Inverse(JMatrix matrix)
         public static JMatrix Invert(JMatrix matrix)
         {
-            JMatrix result;
-            JMatrix.Invert(ref matrix, out result);
+            JMatrix.Invert(matrix, out JMatrix result);
             return result;
         }
 
@@ -344,7 +363,7 @@ namespace GJKEPADemo
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Invert(ref JMatrix matrix, out JMatrix result)
+        public static void Invert(in JMatrix matrix, out JMatrix result)
         {
             double determinantInverse = 1 / matrix.Determinant();
             double m11 = (matrix.M22 * matrix.M33 - matrix.M23 * matrix.M32) * determinantInverse;
@@ -381,10 +400,9 @@ namespace GJKEPADemo
         /// <param name="scaleFactor">The scale factor.</param>
         /// <returns>A JMatrix multiplied by the scale factor.</returns>
         #region public static JMatrix Multiply(JMatrix matrix1, double scaleFactor)
-        public static JMatrix Multiply(JMatrix matrix1, double scaleFactor)
+        public static JMatrix Multiply(in JMatrix matrix1, double scaleFactor)
         {
-            JMatrix result;
-            JMatrix.Multiply(ref matrix1, scaleFactor, out result);
+            JMatrix.Multiply(matrix1, scaleFactor, out JMatrix result);
             return result;
         }
 
@@ -395,7 +413,7 @@ namespace GJKEPADemo
         /// <param name="scaleFactor">The scale factor.</param>
         /// <param name="result">A JMatrix multiplied by the scale factor.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(ref JMatrix matrix1, double scaleFactor, out JMatrix result)
+        public static void Multiply(in JMatrix matrix1, double scaleFactor, out JMatrix result)
         {
             double num = scaleFactor;
             result.M11 = matrix1.M11 * num;
@@ -416,10 +434,9 @@ namespace GJKEPADemo
         /// <param name="matrix">The matrix which should be transposed.</param>
         /// <returns>The transposed JMatrix.</returns>
         #region public static JMatrix Transpose(JMatrix matrix)
-        public static JMatrix Transpose(JMatrix matrix)
+        public static JMatrix Transpose(in JMatrix matrix)
         {
-            JMatrix result;
-            JMatrix.Transpose(ref matrix, out result);
+            JMatrix.Transpose(in matrix, out JMatrix result);
             return result;
         }
 
@@ -428,7 +445,7 @@ namespace GJKEPADemo
         /// </summary>
         /// <param name="matrix">The matrix which should be transposed.</param>
         /// <param name="result">The transposed JMatrix.</param>
-        public static void Transpose(ref JMatrix matrix, out JMatrix result)
+        public static void Transpose(in JMatrix matrix, out JMatrix result)
         {
             result.M11 = matrix.M11;
             result.M12 = matrix.M21;
@@ -449,9 +466,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second matrix.</param>
         /// <returns>The product of both values.</returns>
         #region public static JMatrix operator *(JMatrix value1,JMatrix value2)
-        public static JMatrix operator *(JMatrix value1,JMatrix value2)
+        public static JMatrix operator *(in JMatrix value1, in JMatrix value2)
         {
-            JMatrix result; JMatrix.Multiply(ref value1, ref value2, out result);
+            JMatrix.Multiply(value1, value2, out JMatrix result);
             return result;
         }
         #endregion
@@ -469,9 +486,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second matrix.</param>
         /// <returns>The sum of both values.</returns>
         #region public static JMatrix operator +(JMatrix value1, JMatrix value2)
-        public static JMatrix operator +(JMatrix value1, JMatrix value2)
+        public static JMatrix operator +(in JMatrix value1, in JMatrix value2)
         {
-            JMatrix result; JMatrix.Add(ref value1, ref value2, out result);
+            JMatrix.Add(value1, value2, out JMatrix result);
             return result;
         }
         #endregion
@@ -483,10 +500,9 @@ namespace GJKEPADemo
         /// <param name="value2">The second matrix.</param>
         /// <returns>The difference of both values.</returns>
         #region public static JMatrix operator -(JMatrix value1, JMatrix value2)
-        public static JMatrix operator -(JMatrix value1, JMatrix value2)
+        public static JMatrix operator -(in JMatrix value1, in JMatrix value2)
         {
-            JMatrix result; JMatrix.Multiply(ref value2, -1.0f, out value2);
-            JMatrix.Add(ref value1, ref value2, out result);
+            JMatrix.Subtract(value1, value2, out JMatrix result);
             return result;
         }
         #endregion
@@ -499,7 +515,7 @@ namespace GJKEPADemo
         /// <param name="angle">The angle.</param>
         /// <param name="result">The resulting rotation matrix</param>
         #region public static void CreateFromAxisAngle(ref JVector axis, double angle, out JMatrix result)
-        public static void CreateFromAxisAngle(ref JVector axis, double angle, out JMatrix result)
+        public static void CreateFromAxisAngle(in JVector axis, double angle, out JMatrix result)
         {
             double x = axis.X;
             double y = axis.Y;
@@ -529,9 +545,9 @@ namespace GJKEPADemo
         /// <param name="axis">The axis.</param>
         /// <param name="angle">The angle.</param>
         /// <returns>The resulting rotation matrix</returns>
-        public static JMatrix CreateFromAxisAngle(JVector axis, double angle)
+        public static JMatrix CreateFromAxisAngle(in JVector axis, double angle)
         {
-            JMatrix result; CreateFromAxisAngle(ref axis, angle, out result);
+            CreateFromAxisAngle(axis, angle, out JMatrix result);
             return result;
         }
         #endregion

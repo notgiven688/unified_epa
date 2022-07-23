@@ -97,8 +97,8 @@ namespace GJKEPADemo
         public override void Draw(FrameEventArgs e)
         {
             shader.Use();
-            shader.Projection.Set(ref Showcase.Current.Camera.ProjectionMatrix);
-            shader.View.Set(ref Showcase.Current.Camera.ViewMatrix);
+            shader.Projection.Set(Showcase.Current.Camera.ProjectionMatrix);
+            shader.View.Set(Showcase.Current.Camera.ViewMatrix);
             shader.Model.Set(WorldMatrix);
 
             base.Draw(e);
@@ -155,8 +155,8 @@ namespace GJKEPADemo
         public override void Draw(FrameEventArgs e)
         {
             shader.Use();
-            shader.Projection.Set(ref Showcase.Current.Camera.ProjectionMatrix);
-            shader.View.Set(ref Showcase.Current.Camera.ViewMatrix);
+            shader.Projection.Set(Showcase.Current.Camera.ProjectionMatrix);
+            shader.View.Set(Showcase.Current.Camera.ViewMatrix);
             shader.Model.Set(WorldMatrix);
 
             base.Draw(e);
