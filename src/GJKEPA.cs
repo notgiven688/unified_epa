@@ -326,7 +326,7 @@ namespace GJKEPADemo
             JVector v2 = scale * new JVector(-Math.Sqrt(2.0d / 9.0d), -Math.Sqrt(2.0d / 3.0d), -1.0d / 3.0d);
             JVector v3 = scale * new JVector(0.0d, 0.0d, 1.0d);
 
-            private void ConstructInitialTetrahedron(JVector position)
+            private void ConstructInitialTetrahedron(in JVector position)
             {
                 vPointer = 3;
 
