@@ -119,49 +119,14 @@ namespace GJKEPADemo
             private int[] _triangles = new int[512];
             private int _trianglesCount = 0;
 
+            private Edge[] edges = new Edge[64];
+            private int edgeCounter = 0;
+
+
             private int tPointer = 0;
             private int vPointer = 0;
 
             bool OriginEnclosed = false;
-
-
-/*
-            private void RemoveTriangle(int triangle)
-            {
-                int prev = Triangles[triangle].Prev;
-                int next = Triangles[triangle].Next;
-
-                if(prev != -1) Triangles[prev].Next = next;
-                else Head = next;
-
-                if(next != -1) Triangles[next].Prev = prev;
-            }
-
-            private void SortInTriangle(int triangle)
-            {
-                int current = -1;
-
-                for(int next = Head; next != -1; next = Triangles[current].Next)
-                {
-                    current = next;
-
-                    if (Triangles[triangle].ClosestToOriginSq < Triangles[current].ClosestToOriginSq)
-                    {
-                        int prev = Triangles[current].Prev;
-                        Triangles[triangle].Next = current;
-                        Triangles[triangle].Prev = prev;
-                        Triangles[current].Prev = triangle;
-                        if(prev != -1) Triangles[prev].Next = triangle;
-                        else Head = triangle;
-                        return;
-                    }
-                }
-
-                Triangles[triangle].Prev = current;
-                if(current != -1) Triangles[current].Next = triangle;
-                else Head = triangle;
-            }
-*/
 
             private void CalcPoint(int triangle, in JVector barycentric, out JVector result)
             {
@@ -318,8 +283,12 @@ namespace GJKEPADemo
                         CalcPoint(tPointer, bc, out triangle.ClosestToOrigin);
                         triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                     }
+
+                    //double dd = JVector.Dot(triangle.Normal, Vertices[a] - center);
+                    //if(dd <0.0d) 
+                    //Console.WriteLine("something wrong");
                 }
-                
+
                 //SortInTriangle(tPointer);
                 _triangles[_trianglesCount++] = tPointer;
 
@@ -347,7 +316,8 @@ namespace GJKEPADemo
                 CreateTriangle(1, 2, 3);
             }
 
-            List<Edge> edges = new List<Edge>(24);
+            //List<Edge> edges = new List<Edge>(24);
+            JVector center;
 
             public bool Solve(out JVector point1, out JVector point2, out double separation)
             {
@@ -360,7 +330,7 @@ namespace GJKEPADemo
 
                 int iter = 0;
 
-                MKD.SupportCenter(out JVector center);
+                MKD.SupportCenter(out  center);
                 ConstructInitialTetrahedron(center);
 
                 while (++iter < MaxIter)
@@ -376,7 +346,7 @@ namespace GJKEPADemo
                         if(Triangles[_triangles[i]].ClosestToOriginSq < currentMin)
                         {
                             currentMin = Triangles[_triangles[i]].ClosestToOriginSq;
-                            Head = i;
+                            Head = _triangles[i]; //??
                         }
                     }
 
@@ -453,15 +423,9 @@ namespace GJKEPADemo
                         return true;
                     }
 
-                    // Adjacent triangles are searched (flood-fill algorithm) to determine all lighted triangles
-                    // which then get removed. The hole in the polytope is filled using new triangles connecting 
-                    // the "horizon" and the new support point. Indices of neighboring triangles have to be updated.
-
+ 
+                    edgeCounter = 0;
                     
-
-                    edges.Clear();
-                    
-
                     for(int i = _trianglesCount; i-->0;)
                     {
                         int index = _triangles[i];
@@ -473,21 +437,36 @@ namespace GJKEPADemo
                             Edge e2 = new (Triangles[index].B, Triangles[index].C);
                             Edge e3 = new (Triangles[index].C, Triangles[index].A);
 
-                            int e1idx = edges.IndexOf(e1);
-                            if(e1idx == -1) edges.Add(e1);
-                            else edges.RemoveAt(e1idx);
+                            bool adde1 = true;
+                            bool adde2 = true;
+                            bool adde3 = true;
 
-                            int e2idx = edges.IndexOf(e2);
-                            if(e2idx == -1) edges.Add(e2);
-                            else edges.RemoveAt(e2idx);
+                            for(int e = edgeCounter;e-->0;)
+                            {
+                                if(edges[e].Equals(e1))
+                                {
+                                    edges[e] = edges[--edgeCounter];
+                                    adde1 = false;
+                                }
+                                else if(edges[e].Equals(e2))
+                                {
+                                    edges[e] = edges[--edgeCounter];
+                                    adde2 = false;
+                                }
+                                else if(edges[e].Equals(e3))
+                                {
+                                    edges[e] = edges[--edgeCounter];
+                                    adde3 = false;
+                                }
+                            }
 
-                            int e3idx = edges.IndexOf(e3);
-                            if(e3idx == -1) edges.Add(e3);
-                            else edges.RemoveAt(e3idx);
+                            if(adde1) edges[edgeCounter++] = e1;
+                            if(adde2) edges[edgeCounter++] = e2;
+                            if(adde3) edges[edgeCounter++] = e3;
                         }
                     }
 
-                    for (int i = 0; i < edges.Count; i++)
+                    for (int i = 0; i < edgeCounter; i++)
                     {
                         CreateTriangle(edges[i].A, edges[i].B, vPointer);
                     }
@@ -501,63 +480,6 @@ namespace GJKEPADemo
                     }
 
                     OriginEnclosed = (ii == _trianglesCount);
-
-                    /*
-                    ExpandHorizon(ltri, vPointer);
-                    System.Diagnostics.Debug.Assert(ntPointer > 0);
-
-                    if (!OriginEnclosed)
-                    {
-                        int i = 0; double dd;
-                        for (; i < ntPointer; i++)
-                        {
-                            ref Triangle t = ref Triangles[newTriangles[i]];
-                            dd = JVector.Dot(t.Normal, Vertices[t.A]);
-                            if (dd < 0.0d) break;
-                        }
-
-                        // additional check for numerical stability
-                        ref Triangle tt = ref Triangles[ltri];
-                        dd = JVector.Dot(tt.Normal, Vertices[tt.A]);
-
-                        OriginEnclosed = (i == ntPointer) && (dd < 0.0d);
-                    }
-
-                    int firstIndex = newTriangles[0];
-                    int lastIndex = firstIndex;
-
-                    newTriangles[0] = newTriangles[--ntPointer];
-
-                    while (ntPointer > 0)
-                    {
-                        int found = -1;
-                        for (int i = 0; i < ntPointer; i++)
-                        {
-                            if (Triangles[newTriangles[i]].A == Triangles[lastIndex].B)
-                            {
-                                found = i;
-                                break;
-                            }
-                        }
-
-                        if (found == -1)
-                        {
-                            System.Diagnostics.Debug.WriteLine(
-                                "exit reason 1 - horizon incomplete.");
-
-                            return false;
-                        }
-
-                        Triangles[lastIndex].SetN3(newTriangles[found]);
-                        Triangles[newTriangles[found]].SetN1(lastIndex);
-
-                        lastIndex = newTriangles[found];
-                        newTriangles[found] = newTriangles[--ntPointer];
-                    }
-
-                    Triangles[firstIndex].SetN1(lastIndex);
-                    Triangles[lastIndex].SetN3(firstIndex);
-                    */
                 }
 
                 Diagnostics.Debug.WriteLine(
@@ -572,64 +494,6 @@ namespace GJKEPADemo
                 JVector deltaA = Vertices[w] - Vertices[tr.A];
                 return JVector.Dot(deltaA, tr.Normal) > 0;
             }
-
-/*
-            private void ExpandHorizon(int candidate, int w)
-            {
-                ref Triangle tri = ref Triangles[candidate];
-
-                if (tri.Visited) return;
-                tri.Visited = true;
-
-                RemoveTriangle(candidate);
-
-                bool n1Lit = IsLit(tri.N1, w);
-                bool n2Lit = IsLit(tri.N2, w);
-                bool n3Lit = IsLit(tri.N3, w);
-
-                ref Triangle n1 = ref Triangles[tri.N1];
-                ref Triangle n2 = ref Triangles[tri.N2];
-                ref Triangle n3 = ref Triangles[tri.N3];
-
-                if (!n1Lit)
-                {
-                    int newIndex = CreateTriangle(tri.C, tri.A, w);
-                    Triangles[newIndex].SetN2(tri.N1);
-                    newTriangles[ntPointer++] = newIndex;
-
-                    if (n1.N1 == candidate) n1.N1 = newIndex;
-                    else if (n1.N2 == candidate) n1.N2 = newIndex;
-                    else n1.N3 = newIndex;
-                }
-
-                if (!n2Lit)
-                {
-                    int newIndex = CreateTriangle(tri.A, tri.B, w);
-                    Triangles[newIndex].SetN2(tri.N2);
-                    newTriangles[ntPointer++] = newIndex;
-
-                    if (n2.N1 == candidate) n2.N1 = newIndex;
-                    else if (n2.N2 == candidate) n2.N2 = newIndex;
-                    else n2.N3 = newIndex;
-                }
-
-                if (!n3Lit)
-                {
-                    int newIndex = CreateTriangle(tri.B, tri.C, w);
-                    Triangles[newIndex].SetN2(tri.N3);
-                    newTriangles[ntPointer++] = newIndex;
-
-                    if (n3.N1 == candidate) n3.N1 = newIndex;
-                    else if (n3.N2 == candidate) n3.N2 = newIndex;
-                    else n3.N3 = newIndex;
-                }
-
-                if (n1Lit) ExpandHorizon(tri.N1, w);
-                if (n2Lit) ExpandHorizon(tri.N2, w);
-                if (n3Lit) ExpandHorizon(tri.N3, w);
-            }
-
-*/
         }
 
         [ThreadStatic]
