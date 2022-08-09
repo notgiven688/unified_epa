@@ -360,70 +360,6 @@ namespace GJKEPADemo
                     // The (double-linked) list of triangles is sorted by their distance to the origin. This allows
                     // for an efficient search.
 
-                    int ltri = -1;
-
-                    for(int i = 0; i<_trianglesCount;i++)
-                    {
-                        if (IsLit(_triangles[i], vPointer))
-                        {
-                            ltri = _triangles[i];
-                            break;
-                        }
-                    }
-
-                    //for (int node = Head; node != -1; node = Triangles[node].Next)
-                    //{
-                    //    if (IsLit(node, vPointer))
-                    //    {
-                    //        ltri = node;
-                    //        break;
-                    //    }
-                    //}
-
-                    // Termination condition for GJK and EPA
-                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
-                    //     v = Vertices[vPointer] (support point)
-                    //     e = CollideEpsilon
-                    // The termination condition reads: 
-                    //     abs(dot(normalize(c), v - c)) < e
-                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
-                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
-
-                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(Vertices[vPointer], Triangles[Head].ClosestToOrigin);
-                    bool tc = deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq;
-
-                    // Check if new support point is in the set of already found points.
-                    // Compare with the detailed discussion in
-                    // [Gino van den Bergen, Collision Detection in Interactive 3D Environments]
-
-                    bool repeat = false;
-                    for (int i = 4; i < vPointer; i++)
-                    {
-                        if(Math.Abs(Vertices[i].X - Vertices[vPointer].X) > NumericEpsilon) continue;
-                        if(Math.Abs(Vertices[i].Y - Vertices[vPointer].Y) > NumericEpsilon) continue;
-                        if(Math.Abs(Vertices[i].Z - Vertices[vPointer].Z) > NumericEpsilon) continue;
-
-                        repeat = true;
-                        break;
-                    }
-
-                    if (ltri == -1 || repeat || tc)
-                    {
-                        separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
-                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
-
-                        if (OriginEnclosed) separation *= -1;
-
-                        JVector bc;
-                        if (OriginEnclosed) CalcBarycentric(Head, out bc);
-                        else CalcBarycentricProject(Head, out bc);
-
-                        CalcPointA(Head, bc, out point1);
-                        CalcPointB(Head, bc, out point2);
-                        return true;
-                    }
-
- 
                     edgeCounter = 0;
                     
                     for(int i = _trianglesCount; i-->0;)
@@ -431,6 +367,7 @@ namespace GJKEPADemo
                         int index = _triangles[i];
                         if(IsLit(index, vPointer))
                         {
+                            //ltri = index;
                             _triangles[i] = _triangles[--_trianglesCount];
 
                             Edge e1 = new (Triangles[index].A, Triangles[index].B);
@@ -464,6 +401,49 @@ namespace GJKEPADemo
                             if(adde2) edges[edgeCounter++] = e2;
                             if(adde3) edges[edgeCounter++] = e3;
                         }
+                    }
+
+                    // Termination condition for GJK and EPA
+                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
+                    //     v = Vertices[vPointer] (support point)
+                    //     e = CollideEpsilon
+                    // The termination condition reads: 
+                    //     abs(dot(normalize(c), v - c)) < e
+                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
+                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
+
+                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(Vertices[vPointer], Triangles[Head].ClosestToOrigin);
+                    bool tc = deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq;
+
+                    // Check if new support point is in the set of already found points.
+                    // Compare with the detailed discussion in
+                    // [Gino van den Bergen, Collision Detection in Interactive 3D Environments]
+
+                    bool repeat = false;
+                    for (int i = 4; i < vPointer; i++)
+                    {
+                        if(Math.Abs(Vertices[i].X - Vertices[vPointer].X) > NumericEpsilon) continue;
+                        if(Math.Abs(Vertices[i].Y - Vertices[vPointer].Y) > NumericEpsilon) continue;
+                        if(Math.Abs(Vertices[i].Z - Vertices[vPointer].Z) > NumericEpsilon) continue;
+
+                        repeat = true;
+                        break;
+                    }
+
+                    if (edgeCounter == -1 || repeat || tc)
+                    {
+                        separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
+                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
+
+                        if (OriginEnclosed) separation *= -1;
+
+                        JVector bc;
+                        if (OriginEnclosed) CalcBarycentric(Head, out bc);
+                        else CalcBarycentricProject(Head, out bc);
+
+                        CalcPointA(Head, bc, out point1);
+                        CalcPointB(Head, bc, out point2);
+                        return true;
                     }
 
                     for (int i = 0; i < edgeCounter; i++)
