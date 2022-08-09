@@ -21,6 +21,7 @@
 */
 
 using System;
+using System.Collections.Generic;
 using Diagnostics = System.Diagnostics;
 
 namespace GJKEPADemo
@@ -81,45 +82,50 @@ namespace GJKEPADemo
             public struct Triangle
             {
                 public int A, B, C;
-                public int N1, N2, N3;
 
-                public int Prev, Next;
-
-                public bool Visited;
-                
                 public JVector Normal;
                 public JVector ClosestToOrigin;
 
                 public double NormalSq;
                 public double ClosestToOriginSq;
+            }
 
-                public void SetNeighbors(int n1, int n2, int n3)
+            public struct Edge : IEquatable<Edge> 
+            {
+                public int A;
+                public int B;
+
+                public Edge(int a, int b)
                 {
-                    this.N1 = n1; this.N2 = n2; this.N3 = n3;
+                    this.A = a;
+                    this.B = b;
                 }
 
-                public void SetN1(int n1) => this.N1 = n1;
-                public void SetN2(int n2) => this.N2 = n2;
-                public void SetN3(int n3) => this.N3 = n3;
+                public bool Equals(Edge other)
+                {
+                    return ((other.A == A && other.B == B) || (other.A == B && other.B == A));
+                }
             }
 
             public MinkowskiDifference MKD = new MinkowskiDifference();
 
             private Triangle[] Triangles = new Triangle[1024];
-            private int Head = -1;
+            //private int Head = -1;
 
             private JVector[] Vertices = new JVector[512];
             private JVector[] VerticesA = new JVector[512];
             private JVector[] VerticesB = new JVector[512];
+
+            private int[] _triangles = new int[512];
+            private int _trianglesCount = 0;
 
             private int tPointer = 0;
             private int vPointer = 0;
 
             bool OriginEnclosed = false;
 
-            int[] newTriangles = new int[512];
-            int ntPointer = 0;
 
+/*
             private void RemoveTriangle(int triangle)
             {
                 int prev = Triangles[triangle].Prev;
@@ -155,6 +161,7 @@ namespace GJKEPADemo
                 if(current != -1) Triangles[current].Next = triangle;
                 else Head = triangle;
             }
+*/
 
             private void CalcPoint(int triangle, in JVector barycentric, out JVector result)
             {
@@ -285,7 +292,6 @@ namespace GJKEPADemo
             {
                 ref Triangle triangle = ref Triangles[tPointer];
                 triangle.A = a; triangle.B = b; triangle.C = c;
-                triangle.Next = triangle.Prev = -1;
 
                 JVector u, v;
                 JVector.Subtract(Vertices[a], Vertices[b], out u);
@@ -314,8 +320,8 @@ namespace GJKEPADemo
                     }
                 }
                 
-                triangle.Visited = false;
-                SortInTriangle(tPointer);
+                //SortInTriangle(tPointer);
+                _triangles[_trianglesCount++] = tPointer;
 
                 return tPointer++;
             }
@@ -335,22 +341,19 @@ namespace GJKEPADemo
                 Vertices[2] = v2 + position;
                 Vertices[3] = v3 + position;
 
-                int t1 = CreateTriangle(0, 2, 1);
-                int t2 = CreateTriangle(0, 1, 3);
-                int t3 = CreateTriangle(0, 3, 2);
-                int t4 = CreateTriangle(1, 2, 3);
-
-                Triangles[t1].SetNeighbors(t2, t3, t4);
-                Triangles[t2].SetNeighbors(t3, t1, t4);
-                Triangles[t3].SetNeighbors(t1, t2, t4);
-                Triangles[t4].SetNeighbors(t2, t1, t3);
+                CreateTriangle(0, 2, 1);
+                CreateTriangle(0, 1, 3);
+                CreateTriangle(0, 3, 2);
+                CreateTriangle(1, 2, 3);
             }
+
+            List<Edge> edges = new List<Edge>(24);
 
             public bool Solve(out JVector point1, out JVector point2, out double separation)
             {
-                tPointer = vPointer = ntPointer = 0;
+                tPointer = vPointer = _trianglesCount = 0;
                 OriginEnclosed = false;
-                Head = -1;
+                //Head = -1;
 
                 point1 = point2 = JVector.Zero;
                 separation = 0.0d;
@@ -364,6 +367,19 @@ namespace GJKEPADemo
                 {
                     this.Statistics.Iterations = iter;
 
+                    // search for the closest triangle
+
+                    int Head = -1;
+                    double currentMin = double.MaxValue;
+                    for(int i = 0; i<_trianglesCount;i++)
+                    {
+                        if(Triangles[_triangles[i]].ClosestToOriginSq < currentMin)
+                        {
+                            currentMin = Triangles[_triangles[i]].ClosestToOriginSq;
+                            Head = i;
+                        }
+                    }
+
                     JVector searchDir = Triangles[Head].ClosestToOrigin;
                     if (OriginEnclosed) searchDir.Negate();
 
@@ -376,14 +392,23 @@ namespace GJKEPADemo
 
                     int ltri = -1;
 
-                    for (int node = Head; node != -1; node = Triangles[node].Next)
+                    for(int i = 0; i<_trianglesCount;i++)
                     {
-                        if (IsLit(node, vPointer))
+                        if (IsLit(_triangles[i], vPointer))
                         {
-                            ltri = node;
+                            ltri = _triangles[i];
                             break;
                         }
                     }
+
+                    //for (int node = Head; node != -1; node = Triangles[node].Next)
+                    //{
+                    //    if (IsLit(node, vPointer))
+                    //    {
+                    //        ltri = node;
+                    //        break;
+                    //    }
+                    //}
 
                     // Termination condition for GJK and EPA
                     //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
@@ -432,6 +457,52 @@ namespace GJKEPADemo
                     // which then get removed. The hole in the polytope is filled using new triangles connecting 
                     // the "horizon" and the new support point. Indices of neighboring triangles have to be updated.
 
+                    
+
+                    edges.Clear();
+                    
+
+                    for(int i = _trianglesCount; i-->0;)
+                    {
+                        int index = _triangles[i];
+                        if(IsLit(index, vPointer))
+                        {
+                            _triangles[i] = _triangles[--_trianglesCount];
+
+                            Edge e1 = new (Triangles[index].A, Triangles[index].B);
+                            Edge e2 = new (Triangles[index].B, Triangles[index].C);
+                            Edge e3 = new (Triangles[index].C, Triangles[index].A);
+
+                            int e1idx = edges.IndexOf(e1);
+                            if(e1idx == -1) edges.Add(e1);
+                            else edges.RemoveAt(e1idx);
+
+                            int e2idx = edges.IndexOf(e2);
+                            if(e2idx == -1) edges.Add(e2);
+                            else edges.RemoveAt(e2idx);
+
+                            int e3idx = edges.IndexOf(e3);
+                            if(e3idx == -1) edges.Add(e3);
+                            else edges.RemoveAt(e3idx);
+                        }
+                    }
+
+                    for (int i = 0; i < edges.Count; i++)
+                    {
+                        CreateTriangle(edges[i].A, edges[i].B, vPointer);
+                    }
+
+                    int ii;
+                    for(ii = 0; ii<_trianglesCount;ii++)
+                    {
+                        ref Triangle t = ref Triangles[_triangles[ii]];
+                        double dd = JVector.Dot(t.Normal, Vertices[t.A]);
+                        if (dd < 0.0d) break;
+                    }
+
+                    OriginEnclosed = (ii == _trianglesCount);
+
+                    /*
                     ExpandHorizon(ltri, vPointer);
                     System.Diagnostics.Debug.Assert(ntPointer > 0);
 
@@ -486,6 +557,7 @@ namespace GJKEPADemo
 
                     Triangles[firstIndex].SetN1(lastIndex);
                     Triangles[lastIndex].SetN3(firstIndex);
+                    */
                 }
 
                 Diagnostics.Debug.WriteLine(
@@ -501,6 +573,7 @@ namespace GJKEPADemo
                 return JVector.Dot(deltaA, tr.Normal) > 0;
             }
 
+/*
             private void ExpandHorizon(int candidate, int w)
             {
                 ref Triangle tri = ref Triangles[candidate];
@@ -555,6 +628,8 @@ namespace GJKEPADemo
                 if (n2Lit) ExpandHorizon(tri.N2, w);
                 if (n3Lit) ExpandHorizon(tri.N3, w);
             }
+
+*/
         }
 
         [ThreadStatic]
