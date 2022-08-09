@@ -437,14 +437,19 @@ namespace GJKEPADemo
 
                     if (!OriginEnclosed)
                     {
-                        int i = 0;
+                        int i = 0; double dd;
                         for (; i < ntPointer; i++)
                         {
                             ref Triangle t = ref Triangles[newTriangles[i]];
-                            double dd = JVector.Dot(t.Normal, Vertices[t.A]);
+                            dd = JVector.Dot(t.Normal, Vertices[t.A]);
                             if (dd < 0.0d) break;
                         }
-                        OriginEnclosed = (i == ntPointer);
+
+                        // additional check for numerical stability
+                        ref Triangle tt = ref Triangles[ltri];
+                        dd = JVector.Dot(tt.Normal, Vertices[tt.A]);
+
+                        OriginEnclosed = (i == ntPointer) && (dd < 0.0d);
                     }
 
                     int firstIndex = newTriangles[0];
