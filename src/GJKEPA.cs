@@ -287,7 +287,7 @@ namespace GJKEPADemo
                 return true;
             }
 
-            public bool Solve(out JVector point1, out JVector point2, out JVector normal, out double penetration)
+            public bool Solve(out JVector point1, out JVector point2, out JVector normal, out double separation)
             {
                 tPointer = 0;
                 originEnclosed = false;
@@ -320,6 +320,7 @@ namespace GJKEPADemo
                     
                     ctri = Triangles[closestIndex];
                     JVector searchDir = ctri.ClosestToOrigin;
+                    if (originEnclosed) searchDir.Negate();
 
                     vPointer++;
                     MKD.Support(searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
@@ -372,8 +373,8 @@ namespace GJKEPADemo
                     
 converged:
 
-                    penetration = (float)Math.Sqrt(ctri.ClosestToOriginSq);
-                    if(originEnclosed) penetration *= -1.0d;
+                    separation = (float)Math.Sqrt(ctri.ClosestToOriginSq);
+                    if(originEnclosed) separation *= -1.0d;
 
                     CalcBarycentric(ctri, out JVector bc, !originEnclosed);
 
@@ -386,7 +387,7 @@ converged:
                 }
 
                 point1 = point2 = normal = JVector.Zero;
-                penetration = 0.0d;
+                separation = 0.0d;
 
                 System.Diagnostics.Debug.WriteLine($"EPA: Could not converge within {MaxIter} iterations.");
 
