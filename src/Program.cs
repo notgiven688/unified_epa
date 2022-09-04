@@ -79,11 +79,13 @@ namespace GJKEPADemo
         [STAThread]
         static void Main()
         {
+
 #if TEST
             #pragma warning disable CS0162
             Tests.RunTests();
             return;
 #endif
+
 
             GameWindowSettings gws = GameWindowSettings.Default;
             NativeWindowSettings nws = NativeWindowSettings.Default;
