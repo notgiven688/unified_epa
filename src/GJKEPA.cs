@@ -265,7 +265,7 @@ namespace GJKEPADemo
                 }
 
                 delta = JVector.Dot(triangle.Normal, Vertices[a]);
-                triangle.FacingOrigin = delta > 0.0f;
+                triangle.FacingOrigin = delta > 0.0d;
 
                 if(originEnclosed)
                 {
@@ -378,7 +378,7 @@ converged:
                     point1 = bc.X * VerticesA[ctri.A] + bc.Y * VerticesA[ctri.B] + bc.Z * VerticesA[ctri.C];
                     point2 = bc.X * VerticesB[ctri.A] + bc.Y * VerticesB[ctri.B] + bc.Z * VerticesB[ctri.C];
 
-                    normal = ctri.Normal * (1.0f / Math.Sqrt(ctri.NormalSq));
+                    normal = ctri.Normal * (1.0d / Math.Sqrt(ctri.NormalSq));
 
                     return true;
                 }
