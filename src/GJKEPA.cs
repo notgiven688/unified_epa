@@ -255,7 +255,7 @@ namespace GJKEPADemo
                 // no need to add degenerate triangles
                 if (triangle.NormalSq < NumericEpsilon) return false;
 
-                // do we need to flip the triangle? (the origin of the md has to be always enclosed)
+                // do we need to flip the triangle? (the origin of the md has to be enclosed)
                 double delta = JVector.Dot(triangle.Normal, Vertices[a] - center);
 
                 if (delta < 0)
