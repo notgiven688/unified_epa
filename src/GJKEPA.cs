@@ -28,7 +28,7 @@ namespace GJKEPADemo
 {
     public sealed class GJKEPA
     {
-        private const double NumericEpsilon = 1e-12d;
+        private const double NumericEpsilon = 1e-24d;
         private const double CollideEpsilon = 1e-6d;
         private const int MaxIter = 85;
 
@@ -257,7 +257,7 @@ namespace GJKEPADemo
                 triangle.NormalSq = triangle.Normal.LengthSquared();
 
                 // no need to add degenerate triangles
-                if (triangle.NormalSq < NumericEpsilon * NumericEpsilon) return false;
+                if (triangle.NormalSq < NumericEpsilon) return false;
 
                 // do we need to flip the triangle? (the origin of the md has to be always enclosed)
                 double delta = JVector.Dot(triangle.Normal, Vertices[a] - center);
