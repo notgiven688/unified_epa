@@ -19,10 +19,7 @@
 * SOFTWARE.
 * 
 */
-
 using System;
-using System.Collections.Generic;
-using Diagnostics = System.Diagnostics;
 
 namespace GJKEPADemo
 {
@@ -238,7 +235,6 @@ namespace GJKEPADemo
                 CreateTriangle(1, 2, 3);
             }
 
-
             private bool IsLit(int candidate, int w)
             {
                 ref Triangle tr = ref Triangles[candidate];
@@ -374,6 +370,8 @@ namespace GJKEPADemo
 converged:
                     separation = (float)Math.Sqrt(ctri.ClosestToOriginSq);
                     if(originEnclosed) separation *= -1.0d;
+
+                    this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
 
                     CalcBarycentric(ctri, out JVector bc, !originEnclosed);
 
