@@ -370,9 +370,8 @@ namespace GJKEPADemo
                     }
 
                     if (ePointer > 0) continue;
-                    
-converged:
 
+converged:
                     separation = (float)Math.Sqrt(ctri.ClosestToOriginSq);
                     if(originEnclosed) separation *= -1.0d;
 
@@ -393,8 +392,6 @@ converged:
 
                 return false;
             }
-
-
         }
 
         [ThreadStatic]
