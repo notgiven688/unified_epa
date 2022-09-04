@@ -300,7 +300,7 @@ namespace GJKEPADemo
                     
                     // search for the closest triangle and check if the origin is enclosed
                     int closestIndex = -1;
-                    double currentMin = float.MaxValue;
+                    double currentMin = double.MaxValue;
                     originEnclosed = true;
 
                     for (int i = 0; i < tPointer; i++)
@@ -368,7 +368,7 @@ namespace GJKEPADemo
                     if (ePointer > 0) continue;
 
 converged:
-                    separation = (float)Math.Sqrt(ctri.ClosestToOriginSq);
+                    separation = Math.Sqrt(ctri.ClosestToOriginSq);
                     if(originEnclosed) separation *= -1.0d;
 
                     this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;

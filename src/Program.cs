@@ -80,11 +80,11 @@ namespace GJKEPADemo
         static void Main()
         {
 
-//#if TEST
+#if TEST
             #pragma warning disable CS0162
             Tests.RunTests();
             return;
-//#endif
+#endif
 
 
             GameWindowSettings gws = GameWindowSettings.Default;
