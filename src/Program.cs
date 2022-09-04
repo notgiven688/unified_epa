@@ -81,8 +81,8 @@ namespace GJKEPADemo
         {
 
             #pragma warning disable CS0162
-            Tests.RunTests();
-            return;
+            //Tests.RunTests();
+            //return;
 
 
             GameWindowSettings gws = GameWindowSettings.Default;

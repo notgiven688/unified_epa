@@ -34,7 +34,7 @@ namespace GJKEPADemo
 
         public struct Statistics { public double Accuracy; public int Iterations; }
 
-        public class MinkowskiDifference : ISupportMappable
+        public struct MinkowskiDifference
         {
             public ISupportMappable SupportA, SupportB;
             public JMatrix OrientationA, OrientationB;
@@ -79,9 +79,17 @@ namespace GJKEPADemo
         {
             public Statistics Statistics;
 
+            public MinkowskiDifference MKD;
+
             public struct Triangle
             {
-                public int A, B, C;
+                public short A, B, C;
+                public bool FacingOrigin;
+
+                public short this[int i]
+                {
+                    get { return i == 0 ? A : (i == 1 ? B : C); }
+                }
 
                 public JVector Normal;
                 public JVector ClosestToOrigin;
@@ -90,89 +98,41 @@ namespace GJKEPADemo
                 public double ClosestToOriginSq;
             }
 
-            public struct Edge : IEquatable<Edge> 
+            public struct Edge
             {
-                public int A;
-                public int B;
+                public short A;
+                public short B;
 
-                public Edge(int a, int b)
+                public Edge(short a, short b)
                 {
                     this.A = a;
                     this.B = b;
                 }
 
-                public bool Equals(Edge other)
+                public static bool Equals(in Edge a, in Edge b)
                 {
-                    return ((other.A == A && other.B == B) || (other.A == B && other.B == A));
+                    return ((a.A == b.A && a.B == b.B) || (a.A == b.B && a.B == b.A));
                 }
             }
 
-            public MinkowskiDifference MKD = new MinkowskiDifference();
+            private const int MaxVertices = MaxIter + 4;
+            private const int MaxTriangles = 3 * MaxVertices;
 
-            private Triangle[] Triangles = new Triangle[1024];
-            //private int Head = -1;
+            private readonly Triangle[] Triangles = new Triangle[MaxTriangles];
+            private readonly JVector[] Vertices = new JVector[MaxVertices];
+            private readonly JVector[] VerticesA = new JVector[MaxVertices];
+            private readonly JVector[] VerticesB = new JVector[MaxVertices];
 
-            private JVector[] Vertices = new JVector[512];
-            private JVector[] VerticesA = new JVector[512];
-            private JVector[] VerticesB = new JVector[512];
+            private readonly Edge[] edges = new Edge[256];
 
-            private int[] _triangles = new int[512];
-            private int _trianglesCount = 0;
+            private short tPointer = 0;
+            private short vPointer = 0;
 
-            private Edge[] edges = new Edge[64];
-            private int edgeCounter = 0;
+            private bool originEnclosed = false;
+            private JVector center;
 
-
-            private int tPointer = 0;
-            private int vPointer = 0;
-
-            bool OriginEnclosed = false;
-
-            private void CalcPoint(int triangle, in JVector barycentric, out JVector result)
+            public void CalcBarycentric(in Triangle tri, out JVector result, bool clamp = false)
             {
-                ref Triangle t = ref Triangles[triangle];
-                JMatrix m = new JMatrix(Vertices[t.A], Vertices[t.B], Vertices[t.C]);
-                JVector.Transform(barycentric, m, out result);
-            }
-
-            private void CalcPointA(int triangle, in JVector barycentric, out JVector result)
-            {
-                ref Triangle t = ref Triangles[triangle];
-                JMatrix m = new JMatrix(VerticesA[t.A], VerticesA[t.B], VerticesA[t.C]);
-                JVector.Transform(barycentric, m, out result);
-            }
-
-            private void CalcPointB(int triangle, in JVector barycentric, out JVector result)
-            {
-                ref Triangle t = ref Triangles[triangle];
-                JMatrix m = new JMatrix(VerticesB[t.A], VerticesB[t.B], VerticesB[t.C]);
-                JVector.Transform(barycentric, m, out result);
-            }
-
-            public void CalcBarycentric(int triangle, out JVector result)
-            {
-                ref Triangle tri = ref Triangles[triangle];
-                JVector a = Vertices[tri.A];
-                JVector b = Vertices[tri.B];
-                JVector c = Vertices[tri.C];
-
-                JVector u, v, tmp;
-                JVector.Subtract(a, b, out u);
-                JVector.Subtract(a, c, out v);
-
-                double t = tri.NormalSq;
-                JVector.Cross(u, a, out tmp);
-                double gamma = JVector.Dot(tmp, tri.Normal) / t;
-                JVector.Cross(a, v, out tmp);
-                double beta = JVector.Dot(tmp, tri.Normal) / t;
-                double alpha = 1.0d - gamma - beta;
-
-                result.X = alpha; result.Y = beta; result.Z = gamma;
-            }
-
-            public void CalcBarycentricProject(int triangle, out JVector result)
-            {
-                ref Triangle tri = ref Triangles[triangle];
                 JVector a = Vertices[tri.A];
                 JVector b = Vertices[tri.B];
                 JVector c = Vertices[tri.C];
@@ -193,106 +153,68 @@ namespace GJKEPADemo
                 double beta = JVector.Dot(tmp, tri.Normal) / t;
                 double alpha = 1.0d - gamma - beta;
 
-                // Clamp the projected barycentric coordinates to lie within the triangle,
-                // such that the clamped coordinates are closest (euclidean) to the original point.
-                //
-                // [https://math.stackexchange.com/questions/
-                //  1092912/find-closest-point-in-triangle-given-barycentric-coordinates-outside]
+                if(clamp)
+                {
+                    // Clamp the projected barycentric coordinates to lie within the triangle,
+                    // such that the clamped coordinates are closest (euclidean) to the original point.
+                    //
+                    // [https://math.stackexchange.com/questions/
+                    //  1092912/find-closest-point-in-triangle-given-barycentric-coordinates-outside]
 
-                if (alpha >= 0.0d && beta < 0.0d)
-                {
-                    t = JVector.Dot(a, u);
-                    if ((gamma < 0.0d) && (t > 0.0d))
+                    if (alpha >= 0.0d && beta < 0.0d)
                     {
-                        beta = Math.Min(1.0d, t / u.LengthSquared());
-                        alpha = 1.0d - beta;
-                        gamma = 0.0d;
+                        t = JVector.Dot(a, u);
+                        if ((gamma < 0.0d) && (t > 0.0d))
+                        {
+                            beta = Math.Min(1.0d, t / u.LengthSquared());
+                            alpha = 1.0d - beta;
+                            gamma = 0.0d;
+                        }
+                        else
+                        {
+                            gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(a, v) / v.LengthSquared()));
+                            alpha = 1.0d - gamma;
+                            beta = 0.0d;
+                        }
                     }
-                    else
+                    else if (beta >= 0.0d && gamma < 0.0d)
                     {
-                        gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(a, v) / v.LengthSquared()));
-                        alpha = 1.0d - gamma;
-                        beta = 0.0d;
+                        JVector.Subtract(b, c, out w);
+                        t = JVector.Dot(b, w);
+                        if ((alpha < 0.0d) && (t > 0.0d))
+                        {
+                            gamma = Math.Min(1.0d, t / w.LengthSquared());
+                            beta = 1.0d - gamma;
+                            alpha = 0.0d;
+                        }
+                        else
+                        {
+                            alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(b, u) / u.LengthSquared()));
+                            beta = 1.0d - alpha;
+                            gamma = 0.0d;
+                        }
                     }
-                }
-                else if (beta >= 0.0d && gamma < 0.0d)
-                {
-                    JVector.Subtract(b, c, out w);
-                    t = JVector.Dot(b, w);
-                    if ((alpha < 0.0d) && (t > 0.0d))
+                    else if (gamma >= 0.0d && alpha < 0.0d)
                     {
-                        gamma = Math.Min(1.0d, t / w.LengthSquared());
-                        beta = 1.0d - gamma;
-                        alpha = 0.0d;
+                        JVector.Subtract(b, c, out w);
+                        t = -JVector.Dot(c, v);
+                        if ((beta < 0.0d) && (t > 0.0d))
+                        {
+                            alpha = Math.Min(1.0d, t / v.LengthSquared());
+                            gamma = 1.0d - alpha;
+                            beta = 0.0d;
+                        }
+                        else
+                        {
+                            beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(c, w) / w.LengthSquared()));
+                            gamma = 1.0d - beta;
+                            alpha = 0.0d;
+                        }
                     }
-                    else
-                    {
-                        alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(b, u) / u.LengthSquared()));
-                        beta = 1.0d - alpha;
-                        gamma = 0.0d;
-                    }
-                }
-                else if (gamma >= 0.0d && alpha < 0.0d)
-                {
-                    JVector.Subtract(b, c, out w);
-                    t = -JVector.Dot(c, v);
-                    if ((beta < 0.0d) && (t > 0.0d))
-                    {
-                        alpha = Math.Min(1.0d, t / v.LengthSquared());
-                        gamma = 1.0d - alpha;
-                        beta = 0.0d;
-                    }
-                    else
-                    {
-                        beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(c, w) / w.LengthSquared()));
-                        gamma = 1.0d - beta;
-                        alpha = 0.0d;
-                    }
+
                 }
 
                 result.X = alpha; result.Y = beta; result.Z = gamma;
-            }
-
-            private int CreateTriangle(int a, int b, int c)
-            {
-                ref Triangle triangle = ref Triangles[tPointer];
-                triangle.A = a; triangle.B = b; triangle.C = c;
-
-                JVector u, v;
-                JVector.Subtract(Vertices[a], Vertices[b], out u);
-                JVector.Subtract(Vertices[a], Vertices[c], out v);
-                JVector.Cross(u, v, out triangle.Normal);
-                triangle.NormalSq = triangle.Normal.LengthSquared();
-
-                if (triangle.NormalSq < NumericEpsilon * NumericEpsilon)
-                {
-                    triangle.ClosestToOrigin = JVector.Zero;
-                    triangle.ClosestToOriginSq = float.NaN;
-                }
-                else
-                {
-                    if(OriginEnclosed)
-                    {
-                        double delta = JVector.Dot(triangle.Normal, Vertices[a]);
-                        JVector.Multiply(triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
-                        triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
-                    }
-                    else
-                    {
-                        CalcBarycentricProject(tPointer, out JVector bc);
-                        CalcPoint(tPointer, bc, out triangle.ClosestToOrigin);
-                        triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
-                    }
-
-                    //double dd = JVector.Dot(triangle.Normal, Vertices[a] - center);
-                    //if(dd <0.0d) 
-                    //Console.WriteLine("something wrong");
-                }
-
-                //SortInTriangle(tPointer);
-                _triangles[_trianglesCount++] = tPointer;
-
-                return tPointer++;
             }
 
             const double scale = 1e-4d;
@@ -316,157 +238,6 @@ namespace GJKEPADemo
                 CreateTriangle(1, 2, 3);
             }
 
-            //List<Edge> edges = new List<Edge>(24);
-            JVector center;
-
-            public bool Solve(out JVector point1, out JVector point2, out double separation)
-            {
-                tPointer = vPointer = _trianglesCount = 0;
-                OriginEnclosed = false;
-                //Head = -1;
-
-                point1 = point2 = JVector.Zero;
-                separation = 0.0d;
-
-                int iter = 0;
-
-                MKD.SupportCenter(out  center);
-                ConstructInitialTetrahedron(center);
-
-                while (++iter < MaxIter)
-                {
-                    this.Statistics.Iterations = iter;
-
-                    // search for the closest triangle
-
-                    int Head = -1;
-                    double currentMin = double.MaxValue;
-                    for(int i = 0; i<_trianglesCount;i++)
-                    {
-                        if(Triangles[_triangles[i]].ClosestToOriginSq < currentMin)
-                        {
-                            currentMin = Triangles[_triangles[i]].ClosestToOriginSq;
-                            Head = _triangles[i]; //??
-                        }
-                    }
-
-                    JVector searchDir = Triangles[Head].ClosestToOrigin;
-                    if (OriginEnclosed) searchDir.Negate();
-
-                    vPointer++;
-                    MKD.Support(searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
-
-                    // Search for a triangle on the existing polytope which is "lighted" by the new support point.
-                    // The (double-linked) list of triangles is sorted by their distance to the origin. This allows
-                    // for an efficient search.
-
-                    edgeCounter = 0;
-                    
-                    for(int i = _trianglesCount; i-->0;)
-                    {
-                        int index = _triangles[i];
-                        if(IsLit(index, vPointer))
-                        {
-                            //ltri = index;
-                            _triangles[i] = _triangles[--_trianglesCount];
-
-                            Edge e1 = new (Triangles[index].A, Triangles[index].B);
-                            Edge e2 = new (Triangles[index].B, Triangles[index].C);
-                            Edge e3 = new (Triangles[index].C, Triangles[index].A);
-
-                            bool adde1 = true;
-                            bool adde2 = true;
-                            bool adde3 = true;
-
-                            for(int e = edgeCounter;e-->0;)
-                            {
-                                if(edges[e].Equals(e1))
-                                {
-                                    edges[e] = edges[--edgeCounter];
-                                    adde1 = false;
-                                }
-                                else if(edges[e].Equals(e2))
-                                {
-                                    edges[e] = edges[--edgeCounter];
-                                    adde2 = false;
-                                }
-                                else if(edges[e].Equals(e3))
-                                {
-                                    edges[e] = edges[--edgeCounter];
-                                    adde3 = false;
-                                }
-                            }
-
-                            if(adde1) edges[edgeCounter++] = e1;
-                            if(adde2) edges[edgeCounter++] = e2;
-                            if(adde3) edges[edgeCounter++] = e3;
-                        }
-                    }
-
-                    // Termination condition for GJK and EPA
-                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
-                    //     v = Vertices[vPointer] (support point)
-                    //     e = CollideEpsilon
-                    // The termination condition reads: 
-                    //     abs(dot(normalize(c), v - c)) < e
-                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
-                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
-
-                    double deltaDist = Triangles[Head].ClosestToOriginSq - JVector.Dot(Vertices[vPointer], Triangles[Head].ClosestToOrigin);
-                    bool tc = deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * Triangles[Head].ClosestToOriginSq;
-
-                    // Check if new support point is in the set of already found points.
-                    // Compare with the detailed discussion in
-                    // [Gino van den Bergen, Collision Detection in Interactive 3D Environments]
-
-                    bool repeat = false;
-                    for (int i = 4; i < vPointer; i++)
-                    {
-                        if(Math.Abs(Vertices[i].X - Vertices[vPointer].X) > NumericEpsilon) continue;
-                        if(Math.Abs(Vertices[i].Y - Vertices[vPointer].Y) > NumericEpsilon) continue;
-                        if(Math.Abs(Vertices[i].Z - Vertices[vPointer].Z) > NumericEpsilon) continue;
-
-                        repeat = true;
-                        break;
-                    }
-
-                    if (edgeCounter == -1 || repeat || tc)
-                    {
-                        separation = Math.Sqrt(Triangles[Head].ClosestToOriginSq);
-                        this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
-
-                        if (OriginEnclosed) separation *= -1;
-
-                        JVector bc;
-                        if (OriginEnclosed) CalcBarycentric(Head, out bc);
-                        else CalcBarycentricProject(Head, out bc);
-
-                        CalcPointA(Head, bc, out point1);
-                        CalcPointB(Head, bc, out point2);
-                        return true;
-                    }
-
-                    for (int i = 0; i < edgeCounter; i++)
-                    {
-                        CreateTriangle(edges[i].A, edges[i].B, vPointer);
-                    }
-
-                    int ii;
-                    for(ii = 0; ii<_trianglesCount;ii++)
-                    {
-                        ref Triangle t = ref Triangles[_triangles[ii]];
-                        double dd = JVector.Dot(t.Normal, Vertices[t.A]);
-                        if (dd < 0.0d) break;
-                    }
-
-                    OriginEnclosed = (ii == _trianglesCount);
-                }
-
-                Diagnostics.Debug.WriteLine(
-                    $"exit reason 2: could not converge within {MaxIter} iterations.");
-
-                return false;
-            }
 
             private bool IsLit(int candidate, int w)
             {
@@ -474,6 +245,155 @@ namespace GJKEPADemo
                 JVector deltaA = Vertices[w] - Vertices[tr.A];
                 return JVector.Dot(deltaA, tr.Normal) > 0;
             }
+
+            private bool CreateTriangle(short a, short b, short c)
+            {
+                ref Triangle triangle = ref Triangles[tPointer];
+                triangle.A = a; triangle.B = b; triangle.C = c;
+
+                JVector.Subtract(Vertices[a], Vertices[b], out JVector u);
+                JVector.Subtract(Vertices[a], Vertices[c], out JVector v);
+                JVector.Cross(u, v, out triangle.Normal);
+                triangle.NormalSq = triangle.Normal.LengthSquared();
+
+                // no need to add degenerate triangles
+                if (triangle.NormalSq < NumericEpsilon * NumericEpsilon) return false;
+
+                // do we need to flip the triangle? (the origin of the md has to be always enclosed)
+                double delta = JVector.Dot(triangle.Normal, Vertices[a] - center);
+
+                if (delta < 0)
+                {
+                    (triangle.A, triangle.B) = (triangle.B, triangle.A);
+                    triangle.Normal.Negate();
+                }
+
+                delta = JVector.Dot(triangle.Normal, Vertices[a]);
+                triangle.FacingOrigin = delta > 0.0f;
+
+                if(originEnclosed)
+                {
+                    JVector.Multiply(triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
+                    triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+                }
+                else
+                {
+                    CalcBarycentric(triangle, out JVector bc, true);
+                    triangle.ClosestToOrigin = bc.X * Vertices[triangle.A] + bc.Y * Vertices[triangle.B] + bc.Z * Vertices[triangle.C];
+                    triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
+                }
+
+                tPointer++;
+                return true;
+            }
+
+            public bool Solve(out JVector point1, out JVector point2, out JVector normal, out double penetration)
+            {
+                tPointer = 0;
+                originEnclosed = false;
+
+                MKD.SupportCenter(out center);
+                ConstructInitialTetrahedron(center);
+
+                int iter = 0;
+                Triangle ctri; // closest Triangle
+
+                while (++iter < MaxIter)
+                {
+                    this.Statistics.Iterations = iter;
+                    
+                    // search for the closest triangle and check if the origin is enclosed
+                    int closestIndex = -1;
+                    double currentMin = float.MaxValue;
+                    originEnclosed = true;
+
+                    for (int i = 0; i < tPointer; i++)
+                    {
+                        if(Triangles[i].ClosestToOriginSq < currentMin)
+                        {
+                            currentMin = Triangles[i].ClosestToOriginSq;
+                            closestIndex = i;
+                        }
+
+                        if(!Triangles[i].FacingOrigin) originEnclosed = false;
+                    }
+                    
+                    ctri = Triangles[closestIndex];
+                    JVector searchDir = ctri.ClosestToOrigin;
+
+                    vPointer++;
+                    MKD.Support(searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
+
+                    // Termination condition
+                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
+                    //     v = Vertices[vPointer] (support point)
+                    //     e = CollideEpsilon
+                    // The termination condition reads: 
+                    //     abs(dot(normalize(c), v - c)) < e
+                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
+                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
+                    double deltaDist = ctri.ClosestToOriginSq - JVector.Dot(Vertices[vPointer], ctri.ClosestToOrigin);
+
+                    if(deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * ctri.ClosestToOriginSq)
+                    {
+                         goto converged;
+                    }
+
+                    int ePointer = 0;
+                    for (int index = tPointer; index-- > 0;)
+                    {
+                        if (!IsLit(index, vPointer)) continue;
+                        Edge edge; bool added;
+
+                        for (int k = 0; k < 3; k++)
+                        {
+                            edge = new (Triangles[index][(k + 0) % 3], Triangles[index][(k + 1) % 3]);
+                            added = true;
+                            for (int e = ePointer; e-- > 0;)
+                            {
+                                if (Edge.Equals(edges[e], edge))
+                                {
+                                    edges[e] = edges[--ePointer];
+                                    added = false;
+                                }
+                            }
+                            if (added) edges[ePointer++] = edge;
+                        }
+                        Triangles[index] = Triangles[--tPointer];
+                    }
+
+                    for (int i = 0; i < ePointer; i++)
+                    {
+                        if(!CreateTriangle(edges[i].A, edges[i].B, vPointer))
+                            goto converged;
+                    }
+
+                    if (ePointer > 0) continue;
+                    
+converged:
+
+                    penetration = (float)Math.Sqrt(ctri.ClosestToOriginSq);
+                    if(originEnclosed) penetration *= -1.0d;
+
+                    CalcBarycentric(ctri, out JVector bc, !originEnclosed);
+
+                    point1 = bc.X * VerticesA[ctri.A] + bc.Y * VerticesA[ctri.B] + bc.Z * VerticesA[ctri.C];
+                    point2 = bc.X * VerticesB[ctri.A] + bc.Y * VerticesB[ctri.B] + bc.Z * VerticesB[ctri.C];
+
+                    normal = ctri.Normal * (1.0f / Math.Sqrt(ctri.NormalSq));
+
+                    return true;
+                }
+
+                point1 = point2 = normal = JVector.Zero;
+                penetration = 0.0d;
+
+                System.Diagnostics.Debug.WriteLine($"EPA: Could not converge within {MaxIter} iterations.");
+
+                return false;
+            }
+
+
         }
 
         [ThreadStatic]
@@ -493,7 +413,7 @@ namespace GJKEPADemo
             epaSolver.MKD.PositionA = positionA;
             epaSolver.MKD.PositionB = positionB;
 
-            bool success = epaSolver.Solve(out pointA, out pointB, out separation);
+            bool success = epaSolver.Solve(out pointA, out pointB, out _, out separation);
 
             return success;
         }
