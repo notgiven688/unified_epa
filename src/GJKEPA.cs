@@ -65,11 +65,6 @@ namespace GJKEPADemo
             {
                 this.Support(direction, out _, out _, out result);
             }
-
-            public void SupportCenter(out JVector center)
-            {
-                JVector.Subtract(PositionA, PositionB, out center);
-            }
         }
 
         public class GJKEPASolver
