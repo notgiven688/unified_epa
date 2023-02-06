@@ -109,7 +109,7 @@ namespace GJKEPADemo
             GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-            GL.TexImage2D(TextureTarget.Texture2d, 0, (int)OpenTK.Graphics.OpenGL.PixelFormat.Rgba, data.Width, data.Height, 0,
+            GL.TexImage2D(TextureTarget.Texture2d, 0, OpenTK.Graphics.OpenGL.InternalFormat.Rgba, data.Width, data.Height, 0,
                           OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, data.Scan0);
 
             bitmap.UnlockBits(data);
