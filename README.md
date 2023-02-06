@@ -11,8 +11,6 @@ The implementation itself is contained in [GJKEPA.cs](src/GJKEPA.cs) with ~400 l
 
 In contrast to other available implementations we only work with a convex hull with finite volume. The algorithm relies solely on point-triangle distances.
 
-Details of the algorithm are summarized [here](Notes.pdf).
-
 ## Run the demo
 
 The demo should be able to run cross-platform utilizing OpenGL.
