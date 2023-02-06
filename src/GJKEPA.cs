@@ -239,10 +239,10 @@ namespace GJKEPADemo
 
                 center = 0.25f * (Vertices[0] + Vertices[1] + Vertices[2] + Vertices[3]);
 
-                CreateTriangle(0, 2, 1);
-                CreateTriangle(0, 1, 3);
-                CreateTriangle(0, 3, 2);
-                CreateTriangle(1, 2, 3);
+                CreateTriangle(2, 0, 1);
+                CreateTriangle(1, 0, 3);
+                CreateTriangle(3, 0, 2);
+                CreateTriangle(2, 1, 3);
             }
 
             private bool IsLit(int candidate, int w)
@@ -409,7 +409,7 @@ converged:
          in JVector positionA, in JVector positionB,
          out JVector pointA, out JVector pointB, out double separation)
         {
-            if (epaSolver == null) epaSolver = new GJKEPASolver();
+            epaSolver ??= new GJKEPASolver();
 
             epaSolver.MKD.SupportA = supportA;
             epaSolver.MKD.SupportB = supportB;
