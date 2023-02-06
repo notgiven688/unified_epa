@@ -128,11 +128,13 @@ namespace GJKEPADemo
             private bool originEnclosed = false;
             private JVector center;
 
-            public void CalcBarycentric(in Triangle tri, out JVector result, bool clamp = false)
+            public bool CalcBarycentric(in Triangle tri, out JVector result, bool clamp = false)
             {
                 JVector a = Vertices[tri.A];
                 JVector b = Vertices[tri.B];
                 JVector c = Vertices[tri.C];
+
+                bool clamped = false;
 
                 // Calculate the barycentric coordinates of the origin (0,0,0) projected
                 // onto the plane of the triangle.
@@ -173,6 +175,8 @@ namespace GJKEPADemo
                             alpha = 1.0d - gamma;
                             beta = 0.0d;
                         }
+
+                        clamped = true;
                     }
                     else if (beta >= 0.0d && gamma < 0.0d)
                     {
@@ -190,6 +194,8 @@ namespace GJKEPADemo
                             beta = 1.0d - alpha;
                             gamma = 0.0d;
                         }
+
+                        clamped = true;
                     }
                     else if (gamma >= 0.0d && alpha < 0.0d)
                     {
@@ -207,11 +213,14 @@ namespace GJKEPADemo
                             gamma = 1.0d - beta;
                             alpha = 0.0d;
                         }
+
+                        clamped = true;
                     }
 
                 }
 
                 result.X = alpha; result.Y = beta; result.Z = gamma;
+                return clamped;
             }
 
             const double scale = 1e-4d;
@@ -267,15 +276,15 @@ namespace GJKEPADemo
                 delta = JVector.Dot(triangle.Normal, Vertices[a]);
                 triangle.FacingOrigin = delta > 0.0d;
 
-                if(originEnclosed)
+                if (!originEnclosed && CalcBarycentric(triangle, out JVector bc, true))
                 {
-                    JVector.Multiply(triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
+                    triangle.ClosestToOrigin = bc.X * Vertices[triangle.A] + bc.Y * Vertices[triangle.B] + bc.Z * Vertices[triangle.C];
                     triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                 }
                 else
                 {
-                    CalcBarycentric(triangle, out JVector bc, true);
-                    triangle.ClosestToOrigin = bc.X * Vertices[triangle.A] + bc.Y * Vertices[triangle.B] + bc.Z * Vertices[triangle.C];
+                    // Prefer point-plane distance calculation if possible.
+                    JVector.Multiply(triangle.Normal, delta / triangle.NormalSq, out triangle.ClosestToOrigin);
                     triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                 }
 

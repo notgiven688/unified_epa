@@ -149,9 +149,9 @@ namespace GJKEPADemo
                 Vector3 pB = new Vector3((float)pr.X, (float)pr.Y, (float)pr.Z);
 
                 Overlay.Text += $"  Collision:  {(separation < 0.0d).ToString()}\n";
-                Overlay.Text += $"  Iterations: {GJKEPA.epaSolver.Statistics.Iterations.ToString()}\n";
-                Overlay.Text += $"  Accuracy:   {GJKEPA.epaSolver.Statistics.Accuracy.ToString("0E+00")}\n";
-                Overlay.Text += $"  Separation: {separation.ToString("0.###")}\n";
+                Overlay.Text += $"  Iterations: {GJKEPA.epaSolver.Statistics.Iterations}\n";
+                Overlay.Text += $"  Accuracy:   {GJKEPA.epaSolver.Statistics.Accuracy:0E+00}\n";
+                Overlay.Text += $"  Separation: {separation:0.###}\n";
 
                 PrimitiveLeft.Alpha = separation > 0.0d ? 1.0f : 0.5f;
                 PrimitiveRight.Alpha = separation > 0.0d ? 1.0f : 0.5f;
