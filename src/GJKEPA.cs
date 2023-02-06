@@ -380,7 +380,7 @@ converged:
                     separation = Math.Sqrt(ctri.ClosestToOriginSq);
                     if(originEnclosed) separation *= -1.0d;
 
-                    this.Statistics.Accuracy = Math.Abs(deltaDist) / separation;
+                    this.Statistics.Accuracy = Math.Abs(deltaDist / separation);
 
                     CalcBarycentric(ctri, out JVector bc, !originEnclosed);
 
