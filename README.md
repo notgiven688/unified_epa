@@ -9,7 +9,7 @@ The demo is written in C#, with [OpenTK](https://github.com/opentk/opentk) as on
 
 The implementation itself is contained in [GJKEPA.cs](src/GJKEPA.cs) with ~400 lines of code. The algorithm detects whether two convex objects are separated or colliding and returns the points of closest distance and deepest penetration, respectively.
 
-In contrast to other available implementations we only work with a convex hull with finite volume. The algorithm relies solely on point-triangle distances.
+In contrast to other available implementations we only work with a convex hull with finite volume. Thus the GJK-phase differs from the computationally more efficient "traditional implementations" of GJK. The algorithm relies solely on point-triangle distances.
 
 ## Run the demo
 
