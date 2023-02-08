@@ -65,6 +65,11 @@ namespace GJKEPADemo
             {
                 this.Support(direction, out _, out _, out result);
             }
+
+            public void SupportCenter(out JVector center)
+            {
+                JVector.Subtract(PositionA, PositionB, out center);
+            }
         }
 
         public class GJKEPASolver
@@ -218,26 +223,25 @@ namespace GJKEPADemo
                 return clamped;
             }
 
-            readonly JVector v0 = new (Math.Sqrt(8.0d / 9.0d), 0.0d, -1.0d / 3.0d);
-            readonly JVector v1 = new (-Math.Sqrt(2.0d / 9.0d), Math.Sqrt(2.0d / 3.0d), -1.0d / 3.0d);
-            readonly JVector v2 = new (-Math.Sqrt(2.0d / 9.0d), -Math.Sqrt(2.0d / 3.0d), -1.0d / 3.0d);
-            readonly JVector v3 = new (0.0d, 0.0d, 1.0d);
+            const double scale = 1e-4d;
+            readonly JVector v0 = scale * new JVector(Math.Sqrt(8.0d / 9.0d), 0.0d, -1.0d / 3.0d);
+            readonly JVector v1 = scale * new JVector(-Math.Sqrt(2.0d / 9.0d), Math.Sqrt(2.0d / 3.0d), -1.0d / 3.0d);
+            readonly JVector v2 = scale * new JVector(-Math.Sqrt(2.0d / 9.0d), -Math.Sqrt(2.0d / 3.0d), -1.0d / 3.0d);
+            readonly JVector v3 = scale * new JVector(0.0d, 0.0d, 1.0d);
 
             private void ConstructInitialTetrahedron()
             {
                 vPointer = 3;
 
-                MKD.Support(v0, out VerticesA[0], out VerticesB[0], out Vertices[0]);
-                MKD.Support(v1, out VerticesA[1], out VerticesB[1], out Vertices[1]);
-                MKD.Support(v2, out VerticesA[2], out VerticesB[2], out Vertices[2]);
-                MKD.Support(v3, out VerticesA[3], out VerticesB[3], out Vertices[3]);
+                Vertices[0] = v0 + center;
+                Vertices[1] = v1 + center;
+                Vertices[2] = v2 + center;
+                Vertices[3] = v3 + center;
 
-                center = 0.25f * (Vertices[0] + Vertices[1] + Vertices[2] + Vertices[3]);
-
-                CreateTriangle(2, 0, 1);
-                CreateTriangle(1, 0, 3);
-                CreateTriangle(3, 0, 2);
-                CreateTriangle(2, 1, 3);
+                CreateTriangle(0, 2, 1);
+                CreateTriangle(0, 1, 3);
+                CreateTriangle(0, 3, 2);
+                CreateTriangle(1, 2, 3);
             }
 
             private bool IsLit(int candidate, int w)
@@ -293,6 +297,7 @@ namespace GJKEPADemo
                 tPointer = 0;
                 originEnclosed = false;
 
+                MKD.SupportCenter(out center);
                 ConstructInitialTetrahedron();
 
                 int iter = 0;
