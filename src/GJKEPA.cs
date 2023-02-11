@@ -327,6 +327,11 @@ namespace GJKEPADemo
                     JVector searchDir = ctri.ClosestToOrigin;
                     if (originEnclosed) searchDir.Negate();
 
+                    if(ctri.ClosestToOriginSq < NumericEpsilon)
+                    {
+                        searchDir = ctri.Normal;
+                    }
+
                     vPointer++;
                     MKD.Support(searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
 
