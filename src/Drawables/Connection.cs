@@ -81,6 +81,13 @@ namespace GJKEPADemo
             translation = Matrix4.CreateTranslation(pointB);
             sphereB.WorldMatrix = scale * translation;
         }
+
+        public void Dispose()
+        {
+            tube.Dispose();
+            sphereA.Dispose();
+            sphereB.Dispose();
+        }
     }
 
     public class Tube : Primitive

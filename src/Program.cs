@@ -28,7 +28,7 @@ using OpenTK.Windowing.Desktop;
 
 namespace GJKEPADemo
 {
-    public interface IDrawableComponent
+    public interface IDrawableComponent : IDisposable
     {
         public void Draw(FrameEventArgs e);
         public void Update(FrameEventArgs e);
@@ -48,6 +48,12 @@ namespace GJKEPADemo
         {
             base.OnLoad();
             showcase.Load();
+        }
+
+        protected override void OnUnload()
+        {
+            showcase.Dispose();
+            base.OnUnload();
         }
 
         protected override void OnResize(ResizeEventArgs e)

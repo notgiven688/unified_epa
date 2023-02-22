@@ -48,6 +48,11 @@ namespace GJKEPADemo
             // nothing to do
         }
 
+        public void Dispose()
+        {
+            // nothing to do
+        }
+
         public void Update(FrameEventArgs e)
         {
             KeyboardState ks = Showcase.Current.KeyState;

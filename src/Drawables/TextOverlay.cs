@@ -181,6 +181,15 @@ namespace GJKEPADemo
         {
             // nothing to do
         }
+
+        public void Dispose()
+        {
+            shader.Dispose();
+            GL.DeleteTexture(texture);
+            GL.DeleteVertexArray(VAO);
+            GL.DeleteBuffer(VBO);
+            GL.DeleteBuffer(EBO);
+        }
     }
 
     public static class Monospace12

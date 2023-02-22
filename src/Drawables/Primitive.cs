@@ -29,7 +29,7 @@ using OpenTK.Windowing.Common;
 
 namespace GJKEPADemo
 {
-    public class Primitive : IDrawableComponent, IDisposable
+    public class Primitive : IDrawableComponent
     {
         private BufferHandle VBO, EBO;
         private VertexArrayHandle VAO;
@@ -114,6 +114,7 @@ namespace GJKEPADemo
 
         public virtual void Dispose()
         {
+            GL.DeleteVertexArray(VAO);
             GL.DeleteBuffer(EBO);
             GL.DeleteBuffer(VBO);
         }

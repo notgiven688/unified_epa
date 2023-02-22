@@ -40,7 +40,7 @@ namespace GJKEPADemo
 
         public MainWindow Window { get; private set; }
 
-        private List<IDrawableComponent> drawableComponents = new List<IDrawableComponent>();
+        private List<IDrawableComponent> drawableComponents = new ();
 
         public ImplicitShape PrimitiveLeft { private set; get; }
         public ImplicitShape PrimitiveRight { private set; get; }
@@ -51,7 +51,7 @@ namespace GJKEPADemo
         private bool autorotate = true;
         private bool advancerotation = false;
 
-        private Random random = new Random();
+        private Random random = new ();
 
         public List<Type> AllShapes { get; private set; }
 
@@ -202,6 +202,14 @@ namespace GJKEPADemo
             Detect();
 
             foreach (var component in drawableComponents) component.Update(e);
+        }
+
+        public void Dispose()
+        {
+            foreach (var component in drawableComponents)
+            {
+                component.Dispose();
+            }
         }
     }
 }
