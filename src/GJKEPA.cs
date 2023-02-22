@@ -122,8 +122,8 @@ namespace GJKEPADemo
 
             private readonly Edge[] edges = new Edge[256];
 
-            private short tPointer = 0;
             private short vPointer = 0;
+            private short tCount = 0;
 
             private bool originEnclosed = false;
             private JVector center;
@@ -253,7 +253,7 @@ namespace GJKEPADemo
 
             private bool CreateTriangle(short a, short b, short c)
             {
-                ref Triangle triangle = ref Triangles[tPointer];
+                ref Triangle triangle = ref Triangles[tCount];
                 triangle.A = a; triangle.B = b; triangle.C = c;
 
                 JVector.Subtract(Vertices[a], Vertices[b], out JVector u);
@@ -288,13 +288,13 @@ namespace GJKEPADemo
                     triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
                 }
 
-                tPointer++;
+                tCount++;
                 return true;
             }
 
             public bool Solve(out JVector point1, out JVector point2, out JVector normal, out double separation)
             {
-                tPointer = 0;
+                tCount = 0;
                 originEnclosed = false;
 
                 MKD.SupportCenter(out center);
@@ -312,7 +312,7 @@ namespace GJKEPADemo
                     double currentMin = double.MaxValue;
                     originEnclosed = true;
 
-                    for (int i = 0; i < tPointer; i++)
+                    for (int i = 0; i < tCount; i++)
                     {
                         if(Triangles[i].ClosestToOriginSq < currentMin)
                         {
@@ -351,7 +351,7 @@ namespace GJKEPADemo
                     }
 
                     int ePointer = 0;
-                    for (int index = tPointer; index-- > 0;)
+                    for (int index = tCount; index-- > 0;)
                     {
                         if (!IsLit(index, vPointer)) continue;
                         Edge edge; bool added;
@@ -370,7 +370,7 @@ namespace GJKEPADemo
                             }
                             if (added) edges[ePointer++] = edge;
                         }
-                        Triangles[index] = Triangles[--tPointer];
+                        Triangles[index] = Triangles[--tCount];
                     }
 
                     for (int i = 0; i < ePointer; i++)
