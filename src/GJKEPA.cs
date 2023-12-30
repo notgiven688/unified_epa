@@ -1,15 +1,15 @@
 ﻿/* Copyright <2021> <Thorben Linneweber>
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in all
 * copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,7 +17,7 @@
 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
-* 
+*
 */
 using System;
 
@@ -138,7 +138,7 @@ namespace GJKEPADemo
 
                 // Calculate the barycentric coordinates of the origin (0,0,0) projected
                 // onto the plane of the triangle.
-                // 
+                //
                 // [W. Heidrich, Journal of Graphics, GPU, and Game Tools,Volume 10, Issue 3, 2005.]
 
                 JVector u, v, w, tmp;
@@ -306,7 +306,7 @@ namespace GJKEPADemo
                 while (++iter < MaxIter)
                 {
                     this.Statistics.Iterations = iter;
-                    
+
                     // search for the closest triangle and check if the origin is enclosed
                     int closestIndex = -1;
                     double currentMin = double.MaxValue;
@@ -322,7 +322,7 @@ namespace GJKEPADemo
 
                         if(!Triangles[i].FacingOrigin) originEnclosed = false;
                     }
-                    
+
                     ctri = Triangles[closestIndex];
                     JVector searchDir = ctri.ClosestToOrigin;
                     if (originEnclosed) searchDir.Negate();
@@ -336,18 +336,18 @@ namespace GJKEPADemo
                     MKD.Support(searchDir, out VerticesA[vPointer], out VerticesB[vPointer], out Vertices[vPointer]);
 
                     // Termination condition
-                    //     c = Triangles[Head].ClosestToOrigin (closest point on the polytope)
-                    //     v = Vertices[vPointer] (support point)
-                    //     e = CollideEpsilon
-                    // The termination condition reads: 
-                    //     abs(dot(normalize(c), v - c)) < e
-                    //     <=>  abs(dot(c, v - c))/len(c) < e <=> abs((dot(c, v) - dot(c,c)))/len(c) < e
-                    //     <=>  (dot(c, v) - dot(c,c))^2 < e^2*c^2 <=> (dot(c, v) - c^2)^2 < e^2*c^2
-                    double deltaDist = ctri.ClosestToOriginSq - JVector.Dot(Vertices[vPointer], ctri.ClosestToOrigin);
+                    // Can we further "extend" the convex hull by adding the new vertex?
+                    //
+                    // n = closest triangle normal
+                    // v = Vertices[vPointer] (support point)
+                    // c = Triangles[Head].ClosestToOrigin
+                    //
+                    // abs(dot(c - v, n)) / len(n) < e <=> [dot(c - v, n)]^2 = e*e*n^2
+                    double deltaDist = JVector.Dot(ctri.ClosestToOrigin - Vertices[vPointer], ctri.Normal);
 
-                    if(deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * ctri.ClosestToOriginSq)
+                    if(deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * ctri.NormalSq)
                     {
-                         goto converged;
+                        goto converged;
                     }
 
                     int ePointer = 0;
