@@ -324,12 +324,16 @@ namespace GJKEPADemo
                     }
 
                     ctri = Triangles[closestIndex];
+
                     JVector searchDir = ctri.ClosestToOrigin;
+                    double searchDirSq = ctri.ClosestToOriginSq;
+
                     if (originEnclosed) searchDir.Negate();
 
                     if(ctri.ClosestToOriginSq < NumericEpsilon)
                     {
                         searchDir = ctri.Normal;
+                        searchDirSq = ctri.NormalSq;
                     }
 
                     vPointer++;
@@ -338,14 +342,14 @@ namespace GJKEPADemo
                     // Termination condition
                     // Can we further "extend" the convex hull by adding the new vertex?
                     //
-                    // n = closest triangle normal
                     // v = Vertices[vPointer] (support point)
                     // c = Triangles[Head].ClosestToOrigin
+                    // s = searchDir
                     //
-                    // abs(dot(c - v, n)) / len(n) < e <=> [dot(c - v, n)]^2 = e*e*n^2
-                    double deltaDist = JVector.Dot(ctri.ClosestToOrigin - Vertices[vPointer], ctri.Normal);
+                    // abs(dot(c - v, s)) / len(s) < e <=> [dot(c - v, s)]^2 = e*e*s^2
+                    double deltaDist = JVector.Dot(ctri.ClosestToOrigin - Vertices[vPointer], searchDir);
 
-                    if(deltaDist * deltaDist < CollideEpsilon * CollideEpsilon * ctri.NormalSq)
+                    if (deltaDist * deltaDist <= CollideEpsilon * CollideEpsilon * searchDirSq)
                     {
                         goto converged;
                     }
