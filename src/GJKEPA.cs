@@ -346,7 +346,7 @@ namespace GJKEPADemo
                     // c = Triangles[Head].ClosestToOrigin
                     // s = searchDir
                     //
-                    // abs(dot(c - v, s)) / len(s) < e <=> [dot(c - v, s)]^2 = e*e*s^2
+                    // abs(dot(c - v, s)) / len(s) < e <=> [dot(c - v, s)]^2 < e*e*s^2
                     double deltaDist = JVector.Dot(ctri.ClosestToOrigin - Vertices[vPointer], searchDir);
 
                     if (deltaDist * deltaDist <= CollideEpsilon * CollideEpsilon * searchDirSq)
