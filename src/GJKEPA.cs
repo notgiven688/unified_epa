@@ -310,6 +310,8 @@ namespace GJKEPADemo
                     // search for the closest triangle and check if the origin is enclosed
                     int closestIndex = -1;
                     double currentMin = double.MaxValue;
+                    bool skipTest = originEnclosed;
+
                     originEnclosed = true;
 
                     for (int i = 0; i < tCount; i++)
@@ -320,7 +322,7 @@ namespace GJKEPADemo
                             closestIndex = i;
                         }
 
-                        if(!Triangles[i].FacingOrigin) originEnclosed = false;
+                        if(!Triangles[i].FacingOrigin) originEnclosed = skipTest;
                     }
 
                     ctri = Triangles[closestIndex];
