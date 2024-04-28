@@ -128,7 +128,7 @@ namespace GJKEPADemo
             private bool originEnclosed = false;
             private JVector center;
 
-            public bool CalcBarycentric(in Triangle tri, out JVector result, bool clamp = false)
+            public bool CalcBarycentric(in Triangle tri, out JVector result)
             {
                 JVector a = Vertices[tri.A];
                 JVector b = Vertices[tri.B];
@@ -152,71 +152,67 @@ namespace GJKEPADemo
                 double beta = JVector.Dot(tmp, tri.Normal) / t;
                 double alpha = 1.0d - gamma - beta;
 
-                if(clamp)
+                // Clamp the projected barycentric coordinates to lie within the triangle,
+                // such that the clamped coordinates are closest (euclidean) to the original point.
+                //
+                // [https://math.stackexchange.com/questions/
+                //  1092912/find-closest-point-in-triangle-given-barycentric-coordinates-outside]
+
+                if (alpha >= 0.0d && beta < 0.0d)
                 {
-                    // Clamp the projected barycentric coordinates to lie within the triangle,
-                    // such that the clamped coordinates are closest (euclidean) to the original point.
-                    //
-                    // [https://math.stackexchange.com/questions/
-                    //  1092912/find-closest-point-in-triangle-given-barycentric-coordinates-outside]
-
-                    if (alpha >= 0.0d && beta < 0.0d)
+                    t = JVector.Dot(a, u);
+                    if ((gamma < 0.0d) && (t > 0.0d))
                     {
-                        t = JVector.Dot(a, u);
-                        if ((gamma < 0.0d) && (t > 0.0d))
-                        {
-                            beta = Math.Min(1.0d, t / u.LengthSquared());
-                            alpha = 1.0d - beta;
-                            gamma = 0.0d;
-                        }
-                        else
-                        {
-                            gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(a, v) / v.LengthSquared()));
-                            alpha = 1.0d - gamma;
-                            beta = 0.0d;
-                        }
-
-                        clamped = true;
+                        beta = Math.Min(1.0d, t / u.LengthSquared());
+                        alpha = 1.0d - beta;
+                        gamma = 0.0d;
                     }
-                    else if (beta >= 0.0d && gamma < 0.0d)
+                    else
                     {
-                        JVector.Subtract(b, c, out w);
-                        t = JVector.Dot(b, w);
-                        if ((alpha < 0.0d) && (t > 0.0d))
-                        {
-                            gamma = Math.Min(1.0d, t / w.LengthSquared());
-                            beta = 1.0d - gamma;
-                            alpha = 0.0d;
-                        }
-                        else
-                        {
-                            alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(b, u) / u.LengthSquared()));
-                            beta = 1.0d - alpha;
-                            gamma = 0.0d;
-                        }
-
-                        clamped = true;
-                    }
-                    else if (gamma >= 0.0d && alpha < 0.0d)
-                    {
-                        JVector.Subtract(b, c, out w);
-                        t = -JVector.Dot(c, v);
-                        if ((beta < 0.0d) && (t > 0.0d))
-                        {
-                            alpha = Math.Min(1.0d, t / v.LengthSquared());
-                            gamma = 1.0d - alpha;
-                            beta = 0.0d;
-                        }
-                        else
-                        {
-                            beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(c, w) / w.LengthSquared()));
-                            gamma = 1.0d - beta;
-                            alpha = 0.0d;
-                        }
-
-                        clamped = true;
+                        gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(a, v) / v.LengthSquared()));
+                        alpha = 1.0d - gamma;
+                        beta = 0.0d;
                     }
 
+                    clamped = true;
+                }
+                else if (beta >= 0.0d && gamma < 0.0d)
+                {
+                    JVector.Subtract(b, c, out w);
+                    t = JVector.Dot(b, w);
+                    if ((alpha < 0.0d) && (t > 0.0d))
+                    {
+                        gamma = Math.Min(1.0d, t / w.LengthSquared());
+                        beta = 1.0d - gamma;
+                        alpha = 0.0d;
+                    }
+                    else
+                    {
+                        alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(b, u) / u.LengthSquared()));
+                        beta = 1.0d - alpha;
+                        gamma = 0.0d;
+                    }
+
+                    clamped = true;
+                }
+                else if (gamma >= 0.0d && alpha < 0.0d)
+                {
+                    JVector.Subtract(b, c, out w);
+                    t = -JVector.Dot(c, v);
+                    if ((beta < 0.0d) && (t > 0.0d))
+                    {
+                        alpha = Math.Min(1.0d, t / v.LengthSquared());
+                        gamma = 1.0d - alpha;
+                        beta = 0.0d;
+                    }
+                    else
+                    {
+                        beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(c, w) / w.LengthSquared()));
+                        gamma = 1.0d - beta;
+                        alpha = 0.0d;
+                    }
+
+                    clamped = true;
                 }
 
                 result.X = alpha; result.Y = beta; result.Z = gamma;
@@ -276,7 +272,7 @@ namespace GJKEPADemo
                 delta = JVector.Dot(triangle.Normal, Vertices[a]);
                 triangle.FacingOrigin = delta > 0.0d;
 
-                if (!originEnclosed && CalcBarycentric(triangle, out JVector bc, true))
+                if (CalcBarycentric(triangle, out JVector bc))
                 {
                     triangle.ClosestToOrigin = bc.X * Vertices[triangle.A] + bc.Y * Vertices[triangle.B] + bc.Z * Vertices[triangle.C];
                     triangle.ClosestToOriginSq = triangle.ClosestToOrigin.LengthSquared();
@@ -393,7 +389,7 @@ converged:
 
                     this.Statistics.Accuracy = Math.Abs(deltaDist / separation);
 
-                    CalcBarycentric(ctri, out JVector bc, !originEnclosed);
+                    CalcBarycentric(ctri, out JVector bc);
 
                     point1 = bc.X * VerticesA[ctri.A] + bc.Y * VerticesA[ctri.B] + bc.Z * VerticesA[ctri.C];
                     point2 = bc.X * VerticesB[ctri.A] + bc.Y * VerticesB[ctri.B] + bc.Z * VerticesB[ctri.C];
