@@ -27,7 +27,7 @@ namespace GJKEPADemo
     {
         private const double NumericEpsilon = 1e-24d;
         private const double CollideEpsilon = 1e-6d;
-        private const int MaxIter = 85;
+        private const int MaxIter = 84;
 
         public struct Statistics { public double Accuracy; public int Iterations; }
 
@@ -112,15 +112,19 @@ namespace GJKEPADemo
                 }
             }
 
+            // (*) Euler-characteristic: V (vertices) - E (edges) + F (faces) = 2
+            // We have triangles T instead of faces: F = T
+            // and every edge shares two triangles -> T = 2*V - 4
             private const int MaxVertices = MaxIter + 4;
-            private const int MaxTriangles = 3 * MaxVertices;
+            private const int MaxTriangles = 2 * MaxVertices;
 
             private readonly Triangle[] Triangles = new Triangle[MaxTriangles];
             private readonly JVector[] Vertices = new JVector[MaxVertices];
             private readonly JVector[] VerticesA = new JVector[MaxVertices];
             private readonly JVector[] VerticesB = new JVector[MaxVertices];
 
-            private readonly Edge[] edges = new Edge[256];
+            // see (*)
+            private readonly Edge[] edges = new Edge[MaxVertices * 3 / 2];
 
             private short vPointer = 0;
             private short tCount = 0;
