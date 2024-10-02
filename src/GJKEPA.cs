@@ -398,7 +398,8 @@ converged:
                     point1 = bc.X * VerticesA[ctri.A] + bc.Y * VerticesA[ctri.B] + bc.Z * VerticesA[ctri.C];
                     point2 = bc.X * VerticesB[ctri.A] + bc.Y * VerticesB[ctri.B] + bc.Z * VerticesB[ctri.C];
 
-                    normal = ctri.Normal * (1.0d / Math.Sqrt(ctri.NormalSq));
+                    if (Math.Abs(separation) > NumericEpsilon) normal = -ctri.ClosestToOrigin * (1.0f / separation);
+                    else normal = ctri.Normal * (1.0f / Math.Sqrt(ctri.NormalSq));
 
                     return true;
                 }
