@@ -1,4 +1,4 @@
-﻿/* Copyright <2021> <Thorben Linneweber>
+﻿/* Copyright <2021-2024> <Thorben Linneweber>
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -55,9 +55,10 @@ namespace GJKEPADemo
 
             public void Support(in JVector direction, out JVector vA, out JVector vB, out JVector v)
             {
-                JVector.Negate(direction, out JVector tmp);
-                SupportMapTransformedA(tmp, out vA);
-                SupportMapTransformedB(direction, out vB);
+                // Calculates the support function S_{A-B}(d) = S_{A}(d) - S_{B}(-d),
+                // where 'd' represents the direction.
+                SupportMapTransformedA(direction, out vA);
+                SupportMapTransformedB(-direction, out vB);
                 JVector.Subtract(vA, vB, out v);
             }
 
@@ -330,7 +331,7 @@ namespace GJKEPADemo
                     JVector searchDir = ctri.ClosestToOrigin;
                     double searchDirSq = ctri.ClosestToOriginSq;
 
-                    if (originEnclosed) searchDir.Negate();
+                    if (!originEnclosed) searchDir.Negate();
 
                     if(ctri.ClosestToOriginSq < NumericEpsilon)
                     {
