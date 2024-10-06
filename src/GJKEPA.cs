@@ -94,93 +94,71 @@ namespace GJKEPADemo
 
             public bool CalcBarycentric(in Triangle tri, out JVector result)
             {
-                JVector a = Vertices[tri.A];
-                JVector b = Vertices[tri.B];
-                JVector c = Vertices[tri.C];
+                // The code in this function is largely based on the code
+                // "from (the book) Real-Time Collision Detection by Christer Ericson,
+                // published by Morgan Kaufmann Publishers, (c) 2005 Elsevier Inc".
 
-                bool clamped = false;
+                JVector ab = Vertices[tri.B] - Vertices[tri.A];
+                JVector ac = Vertices[tri.C] - Vertices[tri.A];
+                JVector ap = -Vertices[tri.A];
 
-                // Calculate the barycentric coordinates of the origin (0,0,0) projected
-                // onto the plane of the triangle.
-                //
-                // [W. Heidrich, Journal of Graphics, GPU, and Game Tools,Volume 10, Issue 3, 2005.]
+                double d1 = JVector.Dot(ab, ap);
+                double d2 = JVector.Dot(ac, ap);
 
-                JVector u, v, w, tmp;
-                JVector.Subtract(a, b, out u);
-                JVector.Subtract(a, c, out v);
-
-                double t = tri.NormalSq;
-                JVector.Cross(u, a, out tmp);
-                double gamma = JVector.Dot(tmp, tri.Normal) / t;
-                JVector.Cross(a, v, out tmp);
-                double beta = JVector.Dot(tmp, tri.Normal) / t;
-                double alpha = 1.0d - gamma - beta;
-
-                // Clamp the projected barycentric coordinates to lie within the triangle,
-                // such that the clamped coordinates are closest (euclidean) to the original point.
-                //
-                // [https://math.stackexchange.com/questions/
-                //  1092912/find-closest-point-in-triangle-given-barycentric-coordinates-outside]
-
-                if (alpha >= 0.0d && beta < 0.0d)
+                if (d1 <= 0.0d && d2 <= 0.0d)
                 {
-                    t = JVector.Dot(a, u);
-                    if ((gamma < 0.0d) && (t > 0.0d))
-                    {
-                        beta = Math.Min(1.0d, t / u.LengthSquared());
-                        alpha = 1.0d - beta;
-                        gamma = 0.0d;
-                    }
-                    else
-                    {
-                        gamma = Math.Min(1.0d, Math.Max(0.0d, JVector.Dot(a, v) / v.LengthSquared()));
-                        alpha = 1.0d - gamma;
-                        beta = 0.0d;
-                    }
-
-                    clamped = true;
-                }
-                else if (beta >= 0.0d && gamma < 0.0d)
-                {
-                    JVector.Subtract(b, c, out w);
-                    t = JVector.Dot(b, w);
-                    if ((alpha < 0.0d) && (t > 0.0d))
-                    {
-                        gamma = Math.Min(1.0d, t / w.LengthSquared());
-                        beta = 1.0d - gamma;
-                        alpha = 0.0d;
-                    }
-                    else
-                    {
-                        alpha = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(b, u) / u.LengthSquared()));
-                        beta = 1.0d - alpha;
-                        gamma = 0.0d;
-                    }
-
-                    clamped = true;
-                }
-                else if (gamma >= 0.0d && alpha < 0.0d)
-                {
-                    JVector.Subtract(b, c, out w);
-                    t = -JVector.Dot(c, v);
-                    if ((beta < 0.0d) && (t > 0.0d))
-                    {
-                        alpha = Math.Min(1.0d, t / v.LengthSquared());
-                        gamma = 1.0d - alpha;
-                        beta = 0.0d;
-                    }
-                    else
-                    {
-                        beta = Math.Min(1.0d, Math.Max(0.0d, -JVector.Dot(c, w) / w.LengthSquared()));
-                        gamma = 1.0d - beta;
-                        alpha = 0.0d;
-                    }
-
-                    clamped = true;
+                    result = new JVector(1, 0, 0);
+                    return true;
                 }
 
-                result.X = alpha; result.Y = beta; result.Z = gamma;
-                return clamped;
+                JVector bp = -Vertices[tri.B];
+                double d3 = JVector.Dot(ab, bp);
+                double d4 = JVector.Dot(ac, bp);
+                if (d3 >= 0.0d && d4 <= d3)
+                {
+                    result = new JVector(0, 1, 0);
+                    return true;
+                }
+
+                double vc = d1 * d4 - d3 * d2;
+                if (vc <= 0.0d && d1 >= 0.0d && d3 <= 0.0d)
+                {
+                    double v = d1 / (d1 - d3);
+                    result = new JVector(1.0d - v, v, 0);
+                    return true;
+                }
+
+                JVector cp = -Vertices[tri.C];
+                double d5 = JVector.Dot(ab, cp);
+                double d6 = JVector.Dot(ac, cp);
+                if (d6 >= 0.0d && d5 <= d6)
+                {
+                    result = new JVector(0, 0, 1);
+                    return true;
+                }
+
+                double vb = d5 * d2 - d1 * d6;
+                if (vb <= 0.0f && d2 >= 0.0d && d6 <= 0.0d)
+                {
+                    double w = d2 / (d2 - d6);
+                    result = new JVector(1.0d - w, 0, w);
+                    return true;
+                }
+
+                double va = d3 * d6 - d5 * d4;
+                if (va <= 0.0d && (d4 - d3) >= 0.0d && (d5 - d6) >= 0.0d)
+                {
+                    double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+                    result = new JVector(0, 1.0d - w, w);
+                    return true;
+                }
+
+                double d = 1.0d / (va + vb + vc);
+                double vf = vb * d;
+                double wf = vc * d;
+
+                result = new JVector(1.0d - vf - wf, vf, wf);
+                return false;
             }
 
             const double scale = 1e-4d;
