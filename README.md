@@ -9,7 +9,7 @@ The demo is written in C#, with [OpenTK](https://github.com/opentk/opentk) as on
 
 The implementation itself is contained in [UEPA.cs](src/UEPA.cs) with ~400 lines of code. The algorithm detects whether two convex objects are separated or colliding and returns the points of closest distance and deepest penetration, respectively.
 
-A variant of the expanding polytope algorithm is used also for the separating case - simplifying
+The expanding polytope algorithm is used also for the separating case - simplifying
 the algorithm for collision detection for the general case.
 
 ## Run the demo
