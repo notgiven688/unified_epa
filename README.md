@@ -1,4 +1,4 @@
-# Unified EPA Demo 
+# Unified EPA (UEPA) Demo 
 [![uepa_tests](https://github.com/notgiven688/unified_epa/actions/workflows/uepa_tests.yml/badge.svg)](https://github.com/notgiven688/unified_epa/actions/workflows/uepa_tests.yml)
 
 Robust and simple implementation of the **Expanding Polytope Algorithm** (EPA).
