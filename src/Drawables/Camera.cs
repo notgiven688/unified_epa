@@ -25,7 +25,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Common;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class Camera : IDrawableComponent
     {

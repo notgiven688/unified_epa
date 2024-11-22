@@ -21,7 +21,7 @@
 */
 using System;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class PhongShader : BasicShader, IModelViewProjection, IViewPosition
     {

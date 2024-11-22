@@ -22,7 +22,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     /// <summary>
     /// 3x3 Matrix. Member of the math namespace, so every method

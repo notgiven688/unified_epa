@@ -21,9 +21,9 @@
 */
 using System;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
-    public sealed class GJKEPA
+    public sealed class UEPA
     {
         private const double NumericEpsilon = 1e-24d;
         private const double CollideEpsilon = 1e-6d;
@@ -32,7 +32,7 @@ namespace GJKEPADemo
         public struct Statistics { public double Accuracy; public int Iterations; }
 
 
-        public class GJKEPASolver
+        public class UEPASolver
         {
             public Statistics Statistics;
 
@@ -352,14 +352,14 @@ converged:
         }
 
         [ThreadStatic]
-        public static GJKEPASolver epaSolver;
+        public static UEPASolver epaSolver;
 
         public static bool Detect(ISupportMappable supportA, ISupportMappable supportB,
          in JMatrix orientationA, in JMatrix orientationB,
          in JVector positionA, in JVector positionB,
          out JVector pointA, out JVector pointB, out double separation)
         {
-            epaSolver ??= new GJKEPASolver();
+            epaSolver ??= new UEPASolver();
 
             epaSolver.MKD.SupportA = supportA;
             epaSolver.MKD.SupportB = supportB;

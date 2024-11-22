@@ -24,7 +24,7 @@ using System;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class Connection : IDrawableComponent
     {

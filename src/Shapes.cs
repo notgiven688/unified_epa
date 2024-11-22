@@ -23,7 +23,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class ShapeAttribute : Attribute
     {

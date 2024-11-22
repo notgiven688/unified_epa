@@ -30,9 +30,9 @@ using OpenTK.Windowing.Common;
 using System.IO;
 using System.IO.Compression;
 
-using Font = GJKEPADemo.Monospace12;
+using Font = UEPADemo.Monospace12;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class TextOverlay : IDrawableComponent
     {
@@ -67,10 +67,10 @@ namespace GJKEPADemo
 
             unsafe
             {
-                byte[] raw = Font.GetData();
+                byte[] raw = Monospace12.GetData();
                 fixed(void* ptr = &raw[0])
                 {
-                    GL.TexImage2D(TextureTarget.Texture2d, 0, OpenTK.Graphics.OpenGL.InternalFormat.Rgba,  Font.TextureWidth, Font.TextureHeight, 0,
+                    GL.TexImage2D(TextureTarget.Texture2d, 0, OpenTK.Graphics.OpenGL.InternalFormat.Rgba,  Monospace12.TextureWidth, Monospace12.TextureHeight, 0,
                                 OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)ptr);
                 }
             }
@@ -90,17 +90,17 @@ namespace GJKEPADemo
 
             for (int i = 0; i < len; i++)
             {
-                float deltaW = (float)Font.PixelWidth / (float)Font.TextureWidth;
-                float deltaH = (float)Font.PixelHeight / (float)Font.TextureHeight;
-                int numch = Font.NumberCharactersHorizontal;
+                float deltaW = (float)Monospace12.PixelWidth / (float)Monospace12.TextureWidth;
+                float deltaH = (float)Monospace12.PixelHeight / (float)Monospace12.TextureHeight;
+                int numch = Monospace12.NumberCharactersHorizontal;
 
-                vertices.Add(0); vertices.Add(Font.PixelHeight);
+                vertices.Add(0); vertices.Add(Monospace12.PixelHeight);
                 vertices.Add(deltaW * (float)((i % numch) + 0)); vertices.Add(deltaH * (float)(i / numch + 1));
 
-                vertices.Add(Font.PixelWidth); vertices.Add(Font.PixelHeight);
+                vertices.Add(Monospace12.PixelWidth); vertices.Add(Monospace12.PixelHeight);
                 vertices.Add(deltaW * (float)((i % numch) + 1)); vertices.Add(deltaH * (float)(i / numch + 1));
 
-                vertices.Add(Font.PixelWidth); vertices.Add(0);
+                vertices.Add(Monospace12.PixelWidth); vertices.Add(0);
                 vertices.Add(deltaW * (float)((i % numch) + 1)); vertices.Add(deltaH * (float)(i / numch + 0));
 
                 vertices.Add(0); vertices.Add(0);
@@ -168,7 +168,7 @@ namespace GJKEPADemo
                     int index = (int)lines[i][k];
                     int pointer = (index - asciiMin) * 6;
 
-                    shader.Offset.Set(Position + new Vector2((Font.PixelWidth - Font.ExtraMargin) * k, (Font.PixelHeight - Font.ExtraMargin) * i));
+                    shader.Offset.Set(Position + new Vector2((Monospace12.PixelWidth - Monospace12.ExtraMargin) * k, (Monospace12.PixelHeight - Monospace12.ExtraMargin) * i));
                     GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, sizeof(float) * pointer);
                 }
             }

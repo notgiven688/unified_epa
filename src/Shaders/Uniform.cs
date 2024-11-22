@@ -24,7 +24,7 @@ using System.Diagnostics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public abstract class Uniform
     {

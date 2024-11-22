@@ -1,4 +1,4 @@
-namespace GJKEPADemo;
+namespace UEPADemo;
 
 public struct MinkowskiDifference
 {

@@ -21,7 +21,7 @@
 */
 using System;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public static class Tests
     {
@@ -55,7 +55,7 @@ namespace GJKEPADemo
             JVector p1, p2;
             double separation;
 
-            GJKEPA.Detect(s1, s2, rot1, rot2, pos1, pos2,
+            UEPA.Detect(s1, s2, rot1, rot2, pos1, pos2,
             out p1, out p2, out separation);
 
             double analyticalDistance = 2.0d * (double)i / 10.0d;
@@ -78,7 +78,7 @@ namespace GJKEPADemo
             JVector p1, p2;
             double separation;
 
-            GJKEPA.Detect(s1, s2, rot1, rot2, pos1, pos2,
+            UEPA.Detect(s1, s2, rot1, rot2, pos1, pos2,
             out p1, out p2, out separation);
         }
 
@@ -96,7 +96,7 @@ namespace GJKEPADemo
             JVector p1, p2;
             double separation;
 
-            GJKEPA.Detect(s1, s2, rot1, rot2, pos1, pos2,
+            UEPA.Detect(s1, s2, rot1, rot2, pos1, pos2,
             out p1, out p2, out separation);
 
             double analyticalDistance = (pos2 - pos1).Length() - 1.0d;

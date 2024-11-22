@@ -22,7 +22,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     /// <summary>
     /// A vector structure. Member of the math 

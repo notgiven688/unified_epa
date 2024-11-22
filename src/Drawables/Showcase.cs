@@ -1,15 +1,15 @@
 /* Copyright <2021> <Thorben Linneweber>
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in all
 * copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,7 +17,7 @@
 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
-* 
+*
 */
 using System;
 using System.Reflection;
@@ -27,7 +27,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class Showcase : IDrawableComponent
     {
@@ -121,7 +121,7 @@ namespace GJKEPADemo
             string leftShape = PrimitiveLeft.SupportMap.GetType().GetCustomAttribute<ShapeAttribute>(true).Name;
             string rightShape = PrimitiveRight.SupportMap.GetType().GetCustomAttribute<ShapeAttribute>(true).Name;
 
-            Overlay.Text = $"GJK/EPA Demonstration ({leftShape}/{rightShape})\n\n";
+            Overlay.Text = $"UEPA Demonstration ({leftShape}/{rightShape})\n\n";
             Overlay.Text += "+ Controls\n\n";
             Overlay.Text += "  change shape distance       (k,l)\n";
             Overlay.Text += "  move the camera             (w,a,s,d,mouse)\n";
@@ -139,7 +139,7 @@ namespace GJKEPADemo
             JVector pl, pr;
             double separation;
 
-            bool success = GJKEPA.Detect(PrimitiveLeft.SupportMap, PrimitiveRight.SupportMap,
+            bool success = UEPA.Detect(PrimitiveLeft.SupportMap, PrimitiveRight.SupportMap,
                 orientLeft, orientRight, posLeft, posRight,
                 out pl, out pr, out separation);
 
@@ -149,8 +149,8 @@ namespace GJKEPADemo
                 Vector3 pB = new Vector3((float)pr.X, (float)pr.Y, (float)pr.Z);
 
                 Overlay.Text += $"  Collision:  {(separation < 0.0d).ToString()}\n";
-                Overlay.Text += $"  Iterations: {GJKEPA.epaSolver.Statistics.Iterations}\n";
-                Overlay.Text += $"  Accuracy:   {GJKEPA.epaSolver.Statistics.Accuracy:0E+00}\n";
+                Overlay.Text += $"  Iterations: {UEPA.epaSolver.Statistics.Iterations}\n";
+                Overlay.Text += $"  Accuracy:   {UEPA.epaSolver.Statistics.Accuracy:0E+00}\n";
                 Overlay.Text += $"  Separation: {separation:0.###}\n";
 
                 PrimitiveLeft.Alpha = separation > 0.0d ? 1.0f : 0.5f;
@@ -173,7 +173,7 @@ namespace GJKEPADemo
 
             if (KeyState.IsKeyDown(Keys.K)) distance -= 0.03f * timescale;
             if (KeyState.IsKeyDown(Keys.L)) distance += 0.03f * timescale;
-        
+
             if (IsSwitched(Keys.R)) autorotate = !autorotate;
             if (IsSwitched(Keys.T)) advancerotation = true;
             if (IsSwitched(Keys.N)) NextRandomShapes();

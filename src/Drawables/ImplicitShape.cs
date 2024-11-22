@@ -30,7 +30,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
-namespace GJKEPADemo
+namespace UEPADemo
 {
     public class ImplicitShape : Primitive
     {
