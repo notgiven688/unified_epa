@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="UnifiedEPA/UnifiedEPA.csproj" />
+  <Project Path="UnifiedEPA.WebDemo/UnifiedEPA.WebDemo.csproj" />
+  <Project Path="UnifiedEPA.Tests/UnifiedEPA.Tests.csproj" />
+</Solution>

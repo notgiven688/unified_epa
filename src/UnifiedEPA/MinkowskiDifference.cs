@@ -1,3 +1,7 @@
+// UnifiedEPA
+// (c) Thorben Linneweber
+// SPDX-License-Identifier: MIT
+
 namespace UEPADemo;
 
 public struct MinkowskiDifference

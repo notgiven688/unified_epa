@@ -14,12 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
+        dotnet-version: 10.0.x
+        dotnet-quality: preview
     - name: Test
-      run: dotnet run -c "Test"
+      run: dotnet test src/UnifiedEPA.Tests/UnifiedEPA.Tests.csproj
